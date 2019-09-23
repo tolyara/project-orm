@@ -7,12 +7,12 @@ import org.postgresql.ds.PGPoolingDataSource;
 
 import service.Settings;
 
-public class ConnectionPool {
+public class PGConnectionPool {
 	
 	@SuppressWarnings("deprecation")
 	private PGPoolingDataSource source;
 	
-	private ConnectionPool() {
+	private PGConnectionPool() {
 		final Settings settings = Settings.getInstance();
 		source = new PGPoolingDataSource();
         source.setDataSourceName("A Data Source");
@@ -24,11 +24,11 @@ public class ConnectionPool {
         source.setInitialConnections(20); //Сколько соединений будет сразу открыто
 	}
 
-	private static ConnectionPool instance = null;
+	private static PGConnectionPool instance = null;
 
-	public static ConnectionPool getInstance() {
+	public static PGConnectionPool getInstance() {
 		if (instance == null)
-			instance = new ConnectionPool();
+			instance = new PGConnectionPool();
 		return instance;
 	}
 

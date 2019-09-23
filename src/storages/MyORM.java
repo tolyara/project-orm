@@ -22,7 +22,7 @@ public class MyORM implements DataStorage, AutoCloseable {
 
 	public MyORM() {
 		try {
-			this.connection = ConnectionPool.getInstance().getConnection();
+			this.connection = PGConnectionPool.getInstance().getConnection();
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
