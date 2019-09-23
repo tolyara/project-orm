@@ -12,26 +12,48 @@ public class MainClass {
 
 	private static final String POSTGRESQL_DRIVER = "org.postgresql.Driver";
 	private static final String VERSION = "beta version";
-	private static final PrintStream myOut = MyOut.getInstance().getOut();
-	private static final MyORM myORM = new MyORM();
+//	private static final PrintStream myOut = MyOut.getInstance().getOut();
+	private static final MyORM myORM = new MyORM(POSTGRESQL_DRIVER);
+	private static final MyORM myORMwithConnectionPool = new MyORM();
+	
+	private static final int ITERATION_NUMBER = 10_000;
 
 	public static void main(String[] args) throws IOException {
 
 		printHeader();
-//		myORM.createData("value1");
+		checkProcuctivity();
+//		myORM.createData("value4");
 //		myORM.deleteTable("test");
-		myORM.updateData(3, "value3");
+//		myORM.updateData("test", 4, "value14");
 //		myORM.deleteAllData("test");
 
 	}
 
 	private static void printHeader() {		
-		myOut.println("PROJECT MY-ORM : " + VERSION);
+		System.out.println("PROJECT MY-ORM : " + VERSION);
 	}
 	
 	private static void doTest() {
 //		myORM.createTable("TestTable");
 //		myORM.deleteTable("TestTable");
+	}
+	
+	private static void checkProcuctivity() {
+		
+		long start = System.currentTimeMillis();
+		for (int i = 0; i < ITERATION_NUMBER; i++) {
+			myORM.updateData("test", 4, "value");
+		}
+		long finish = System.currentTimeMillis();
+		System.out.println("Finished in : " + (finish - start) + " millis");
+		
+		start = System.currentTimeMillis();
+		for (int i = 0; i < ITERATION_NUMBER; i++) {
+			myORMwithConnectionPool.updateData("test", 4, "value");
+		}
+		finish = System.currentTimeMillis();
+		System.out.println("Finished in : " + (finish - start) + " millis");
+		
 	}
 
 }

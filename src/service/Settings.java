@@ -2,6 +2,7 @@ package service;
 
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.net.URL;
 import java.util.Properties;
 
 public class Settings {
@@ -10,7 +11,7 @@ public class Settings {
 
     private Settings() {
         try {
-            properties.load(new FileInputStream(this.getClass().getClassLoader().getResource("/resources/orm.properties").getFile()));
+            properties.load(new FileInputStream(this.getClass().getClassLoader().getResource("./resources/orm.properties").getFile()));
         } catch (IOException e) {
             e.printStackTrace();
         }
