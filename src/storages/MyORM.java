@@ -11,9 +11,12 @@ public class MyORM implements DataStorage {
 
 	private Connection connection;
 
-	private static final String QUERY_CREATE_DATABASE = "CREATE DATABASE ?;";
-	private static final String QUERY_CREATE_TABLE = "CREATE TABLE ?;";
-	private static final String QUERY_DROP_AND_CREATE_DATABASE = "DROP DATABASE ?;" + "CREATE DATABASE ?;";
+	private static final String QUERY_CREATE_TABLE = "CREATE TABLE ? ( test_id serial PRIMARY KEY, test_field VARCHAR(20) );";
+	private static final String QUERY_DROP_TABLE = "DROP TABLE (?);";
+	private static final String QUERY_INSERT = "INSERT INTO test (test_field) VALUES (?);";
+	private static final String QUERY_DELETE = "DELETE FROM ?;";
+	private static final String QUERY_UPDATE = "UPDATE test as test set test_field = ? where test.test_id = ?;";
+//	private static final String QUERY_DROP_AND_CREATE_DATABASE = "DROP DATABASE ?;" + "CREATE DATABASE ?;";
 	private static final String QUERY_DROP_AND_CREATE_TABLE = "DROP TABLE ?;" + "CREATE TABLE ?;";
 
 	public MyORM() {
@@ -42,18 +45,50 @@ public class MyORM implements DataStorage {
 		}
 	}
 
-	public void createDatabase(String nameDB) {
-		try (final PreparedStatement statement = this.connection.prepareStatement(QUERY_CREATE_DATABASE)) {
-			statement.setString(1, nameDB);
+	public void createTable(String tableName) {
+		
+//		try (final PreparedStatement statement = this.connection.prepareStatement(QUERY_CREATE_TABLE)) {
+//			statement.setString(1, nameTable.trim());			
+//			statement.executeUpdate();
+//		} catch (SQLException e) {
+//			e.printStackTrace();
+//		}
+		
+	}
+	
+	public void deleteTable(String tableName) {
+		
+		try (final PreparedStatement statement = this.connection.prepareStatement(QUERY_DROP_TABLE)) {
+			statement.setString(1, tableName.trim());
+			statement.executeUpdate();
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		
+	}
+	
+	public void createData(String data) {
+		try (final PreparedStatement statement = this.connection.prepareStatement(QUERY_INSERT)) {
+			statement.setString(1, data.trim());
 			statement.executeUpdate();
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
 	}
-
-	public void createTable(String nameTable) {
-		try (final PreparedStatement statement = this.connection.prepareStatement(QUERY_CREATE_TABLE)) {
-			statement.setString(1, nameTable);
+	
+	public void updateData(int elementId, String newElementName) {
+		try (final PreparedStatement statement = this.connection.prepareStatement(QUERY_UPDATE)) {
+			statement.setString(1, newElementName.trim());
+			statement.setInt(2, elementId);
+			statement.executeUpdate();
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	public void deleteAllData(String tableName) {
+		try (final PreparedStatement statement = this.connection.prepareStatement(QUERY_DELETE)) {
+			statement.setString(1, tableName.trim());
 			statement.executeUpdate();
 		} catch (SQLException e) {
 			e.printStackTrace();

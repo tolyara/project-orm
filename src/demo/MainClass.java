@@ -18,15 +18,20 @@ public class MainClass {
 	public static void main(String[] args) throws IOException {
 
 		printHeader();
-		myORM.createTable("testTable");
+//		myORM.createData("value1");
+//		myORM.deleteTable("test");
+		myORM.updateData(3, "value3");
+//		myORM.deleteAllData("test");
 
 	}
 
-	private static void printHeader() {
-		
+	private static void printHeader() {		
 		myOut.println("PROJECT MY-ORM : " + VERSION);
-//		FileOutputStream
-
+	}
+	
+	private static void doTest() {
+//		myORM.createTable("TestTable");
+//		myORM.deleteTable("TestTable");
 	}
 
 }
