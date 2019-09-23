@@ -1,14 +1,20 @@
 package storages;
 
+import java.lang.annotation.Annotation;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 
+import models.TestModel;
+
 //TODO - возможность передать в запрос имя табл.
 
 import service.Settings;
 
+/**
+ * Class implements interaction with database
+ */
 public class MyORM implements DataStorage, AutoCloseable {
 
 	private Connection connection;
@@ -20,6 +26,7 @@ public class MyORM implements DataStorage, AutoCloseable {
 	private static final String QUERY_UPDATE = "UPDATE test AS test SET test_field = ? WHERE test.test_id = ?;";
 	private static final String QUERY_DROP_AND_CREATE_TABLE = "DROP TABLE ?;" + "CREATE TABLE ?;";
 
+	
 	public MyORM() {
 		try {
 			this.connection = PGConnectionPool.getInstance().getConnection();
@@ -64,18 +71,26 @@ public class MyORM implements DataStorage, AutoCloseable {
 
 	}
 
-	public void createData(String data) {
+	public void testCreateData(TestModel testModel) {
 		try (final PreparedStatement statement = this.connection.prepareStatement(QUERY_INSERT)) {
-			statement.setString(1, data.trim());
-			statement.executeUpdate();
+			
+//			Annotation[] annotations = testModel.getClass().getAnnotations();
+//			for (Annotation annotation : annotations) {
+//				System.out.println(annotation);
+//			}
+			
+			System.out.println(testModel);
+			
+//			statement.setString(1, data.trim());
+//			statement.executeUpdate();
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
 	}
 
 	public void updateData(String tableName, int elementId, String newElementName) {
-		try (final PreparedStatement statement = this.connection.prepareStatement(QUERY_UPDATE)) {
-			// statement.setObject(1, tableName);
+		final String QUERY_UPDATE_ON_TABLE = "UPDATE " + tableName + " AS test SET test_field = ? WHERE test.test_id = ?;";
+		try (final PreparedStatement statement = this.connection.prepareStatement(QUERY_UPDATE_ON_TABLE)) {
 			statement.setString(1, newElementName.trim());
 			statement.setInt(2, elementId);
 			statement.executeUpdate();
@@ -94,7 +109,7 @@ public class MyORM implements DataStorage, AutoCloseable {
 	}
 
 	@Override
-	public void close() throws Exception {
+	public void close() {
 		try {
 			connection.close();
 		} catch (SQLException e) {

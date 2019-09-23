@@ -7,6 +7,9 @@ import org.postgresql.ds.PGPoolingDataSource;
 
 import service.Settings;
 
+/**
+ * Class implements connection to PostgreSQL DB with creating connection pool
+ */
 public class PGConnectionPool {
 	
 	@SuppressWarnings("deprecation")

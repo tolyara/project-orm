@@ -5,6 +5,9 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.Properties;
 
+/**
+ * Class serves the work with the configuration files, such as ./resources/orm.properties
+ */
 public class Settings {
 	
 	private final Properties properties = new Properties();
