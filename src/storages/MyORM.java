@@ -1,14 +1,19 @@
 package storages;
 
 import java.lang.annotation.Annotation;
+import java.lang.reflect.*;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 
+import org.postgresql.jdbc.*;
+
+import annotations.DBField;
+import annotations.DBModel;
 import models.TestModel;
 
-//TODO - возможность передать в запрос имя табл.
+//TODO - возможность передать в запрос имя табл. +++
 
 import service.Settings;
 
@@ -26,7 +31,6 @@ public class MyORM implements DataStorage, AutoCloseable {
 	private static final String QUERY_UPDATE = "UPDATE test AS test SET test_field = ? WHERE test.test_id = ?;";
 	private static final String QUERY_DROP_AND_CREATE_TABLE = "DROP TABLE ?;" + "CREATE TABLE ?;";
 
-	
 	public MyORM() {
 		try {
 			this.connection = PGConnectionPool.getInstance().getConnection();
@@ -71,25 +75,59 @@ public class MyORM implements DataStorage, AutoCloseable {
 
 	}
 
-	public void testCreateData(TestModel testModel) {
-		try (final PreparedStatement statement = this.connection.prepareStatement(QUERY_INSERT)) {
+	public void testCreateRecordInDB(TestModel testModel) {
+
+		// Annotation[] annotations = testModel.getClass().getAnnotations();
+		// for (Annotation annotation : annotations) {
+		// System.out.println(annotation);
+		// }
+		// Class tmClass = TestModel.class;
+
+		// Method[] methods = testModel.getClass().getMethods();
+		// for (Method method : methods) {
+		// System.out.println(method);
+		// }
+
+		DBModel modelAnnotation = testModel.getClass().getAnnotation(DBModel.class);
+		final String TABLE_NAME = modelAnnotation.tableName().trim();
+		System.out.println(TABLE_NAME);
+
+		String fieldName = "<null>";
+		String fieldValue = "<null>";
+		try {
+			Field parsedField = testModel.getClass().getDeclaredField("field");
+
+			DBField fieldAnnotation = parsedField.getAnnotation(DBField.class);
+			fieldName = fieldAnnotation.fieldName().trim();
+			System.out.println(fieldName);
+
+			parsedField.setAccessible(true);
+			fieldValue = ((String) parsedField.get(testModel)).trim();
+			System.out.println(fieldValue);
+
+		} catch (IllegalArgumentException | IllegalAccessException | NoSuchFieldException e) {
+			e.printStackTrace();
+		}
+
+		final String QUERY_CREATE_ON_TABLE = "INSERT INTO " + TABLE_NAME + "(" + fieldName + ")" + " VALUES (?);";
+
+		// PgPreparedStatement pg;
+
+		try (final PreparedStatement statement = this.connection.prepareStatement(QUERY_CREATE_ON_TABLE)) {
+//			System.out.println(statement.getClass());
+//			statement.setString(1, fieldName);
+			statement.setString(1, fieldValue);
 			
-//			Annotation[] annotations = testModel.getClass().getAnnotations();
-//			for (Annotation annotation : annotations) {
-//				System.out.println(annotation);
-//			}
-			
-			System.out.println(testModel);
-			
-//			statement.setString(1, data.trim());
-//			statement.executeUpdate();
+//			statement.setString(2, "'" + fieldValue + "'");			
+			statement.executeUpdate();
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
 	}
 
 	public void updateData(String tableName, int elementId, String newElementName) {
-		final String QUERY_UPDATE_ON_TABLE = "UPDATE " + tableName + " AS test SET test_field = ? WHERE test.test_id = ?;";
+		final String QUERY_UPDATE_ON_TABLE = "UPDATE " + tableName
+				+ " AS test SET test_field = ? WHERE test.test_id = ?;";
 		try (final PreparedStatement statement = this.connection.prepareStatement(QUERY_UPDATE_ON_TABLE)) {
 			statement.setString(1, newElementName.trim());
 			statement.setInt(2, elementId);

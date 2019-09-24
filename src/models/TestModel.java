@@ -3,7 +3,7 @@ package models;
 import annotations.DBField;
 import annotations.DBModel;
 
-@DBModel(tableName ="test")
+@DBModel(tableName = "test")
 public class TestModel {
 	
 	@DBField (fieldName = "test_id", isAutoIncrement = true)
@@ -14,6 +14,10 @@ public class TestModel {
 
 	public TestModel() {
 
+	}
+	
+	public TestModel(String field) {
+		this.field = field;
 	}
 
 }

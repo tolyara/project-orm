@@ -26,10 +26,12 @@ public class MainClass {
 		printHeader();
 		// initializeWorkingEntities();
 		// checkProcuctivity();
-		TestModel testModel = new TestModel();
-		 myORM.testCreateData(testModel);
+		TestModel testModel = new TestModel("value40");
+		
+		myORM.testCreateRecordInDB(testModel);
+		
 		// myORM.deleteTable("test");
-//		myORM.updateData("test", 4, "value111");
+//		myORM.updateData("test", 5, "value39");
 		// myORM.deleteAllData("test");
 		closeResources();
 
@@ -42,19 +44,6 @@ public class MainClass {
 		myORM.close();
 		myORMwithConnectionPool.close();
 	}
-
-	/*
-	 * Method is needed so that ORM objects will be closed automatically
-	 */
-	// private static void initializeWorkingEntities() {
-	// try (final MyORM tempMyORM = new MyORM(POSTGRESQL_DRIVER);
-	// final MyORM tempMyORMwithConnectionPool = new MyORM()) {
-	// myORM = tempMyORM;
-	// myORMwithConnectionPool = tempMyORMwithConnectionPool;
-	// } catch (Exception e) {
-	// e.printStackTrace();
-	// }
-	// }
 
 	private static void printHeader() {
 		System.out.println("PROJECT MY-ORM : " + VERSION);
