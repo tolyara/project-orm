@@ -24,6 +24,10 @@ public class MyORM implements DataStorage, AutoCloseable {
 
 	private Connection connection;
 
+	public Connection getConnection() {
+		return connection;
+	}
+
 	private static final String QUERY_CREATE_TABLE = "CREATE TABLE ? ( test_id serial PRIMARY KEY, test_field VARCHAR(20) );";
 	private static final String QUERY_DROP_TABLE = "DROP TABLE (?);";
 	private static final String QUERY_INSERT = "INSERT INTO test (test_field) VALUES (?);";

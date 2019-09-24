@@ -14,12 +14,12 @@ import storages.MyORM;
  */
 public class MainClass {
 
-	private static final String POSTGRESQL_DRIVER = "org.postgresql.Driver";
+	public static final String POSTGRESQL_DRIVER = "org.postgresql.Driver";
 	private static final String VERSION = "beta version";
 	private static final MyORM myORM = new MyORM (POSTGRESQL_DRIVER);
 	private static final MyORM myORMwithConnectionPool = new MyORM();
 	
-	private static final TestModel testModel1 = new TestModel("value111");
+	private static final TestModel testModel1 = new TestModel("value123");
 	private static final TestModel testModel2 = new TestModel(6);
 
 	private static final int ITERATION_NUMBER = 10_000;
