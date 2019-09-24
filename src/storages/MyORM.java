@@ -123,7 +123,7 @@ public class MyORM implements DataStorage, AutoCloseable {
 	}
 
 	/*
-	 * Method deletes some record in test table
+	 * Method deletes some record in test table by field "id"
 	 */
 	public void testDeleteRecordFromDB(Object testModel) {
 
