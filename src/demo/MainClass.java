@@ -4,6 +4,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
 
+import models.Client;
 import models.TestModel;
 import service.MyOut;
 import storages.DataStorage;
@@ -30,7 +31,7 @@ public class MainClass {
 		
 //		TestModel testModel = new TestModel("value50");
 		
-//		doTest();
+		doTest();
 		closeResources();
 
 	}
@@ -48,7 +49,8 @@ public class MainClass {
 	}
 
 	private static void doTest() {
-		myORM.testCreateRecordInDB(testModel1);
+		myORM.createTable(Client.class);
+//		myORM.testCreateRecordInDB(testModel1);
 //		myORM.testDeleteRecordFromDB(testModel2);
 	}
 

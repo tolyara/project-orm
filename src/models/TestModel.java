@@ -3,7 +3,7 @@ package models;
 import annotations.DBField;
 import annotations.DBModel;
 
-@DBModel(tableName = "test")
+@DBModel(tableName = "test", primaryKey = "id")
 public class TestModel {
 	
 	@DBField (fieldName = "test_id", isAutoIncrement = true)

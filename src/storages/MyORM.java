@@ -2,10 +2,8 @@ package storages;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.*;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
+import java.sql.*;
+import java.util.*;
 
 import org.postgresql.jdbc.*;
 
@@ -56,16 +54,24 @@ public class MyORM implements DataStorage, AutoCloseable {
 		}
 	}
 
-	public void createTable(String tableName) {
+	public void createTable(Class entity) {
 
-		// try (final PreparedStatement statement =
-		// this.connection.prepareStatement(QUERY_CREATE_TABLE)) {
-		// statement.setString(1, nameTable.trim());
-		// statement.executeUpdate();
-		// } catch (SQLException e) {
-		// e.printStackTrace();
-		// }
+		Statement statement = null;
+		try {
+			statement = connection.createStatement();
+			statement.executeUpdate(getSQLRequest(entity, getFieldsNames(entity)));
 
+		} catch (SQLException e) {
+			e.printStackTrace();
+		} finally {
+			try {
+				if (statement != null) {
+					statement.close();
+				}
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+		}
 	}
 
 	public void deleteTable(String tableName) {
@@ -127,7 +133,7 @@ public class MyORM implements DataStorage, AutoCloseable {
 	}
 
 	/*
-	 * Method deletes some record in test table
+	 * Method deletes some record in test table by field "id"
 	 */
 	public void testDeleteRecordFromDB(Object testModel) {
 
@@ -178,5 +184,56 @@ public class MyORM implements DataStorage, AutoCloseable {
 			e.printStackTrace();
 		}
 	}
+
+	// Method creates SQL request for creating new table.
+	private String getSQLRequest(Class entity, List<String> fields) {
+
+		String primaryKey = "<null>";
+		DBModel modelAnnotation = (DBModel) entity.getAnnotation(DBModel.class);
+		primaryKey = modelAnnotation.primaryKey().trim();
+
+		StringBuilder SQLRequest = new StringBuilder(
+				"CREATE TABLE " + entity.getSimpleName().toLowerCase() + " (" + primaryKey + " INTEGER not NULL, ");
+
+		// StringBuilder SQLRequest = new StringBuilder(
+		// "CREATE TABLE " + entity.getSimpleName().toLowerCase() + " (" );
+
+//		System.out.println(entity.getSimpleName().toLowerCase());
+
+		for (String name : fields) {
+			if (!name.equals(primaryKey)) {
+				SQLRequest.append(name).append(" VARCHAR(45), ");
+			}
+		}
+		SQLRequest.append("PRIMARY KEY (id))");
+		return SQLRequest.toString();
+	}
+
+	// Get fields name from entity class with reflection
+	private List<String> getFieldsNames(Class entity) {
+		Field[] allFields = entity.getDeclaredFields();
+		List<String> nameFields = new ArrayList<>();
+		for (Field f : allFields) {
+			if (f.isAnnotationPresent(DBField.class)) {
+				nameFields.add(f.getName());
+			}
+		}
+		return nameFields;
+	}
+
+	// Connection only for PostgreSQL. Need create flexible method for another DB
+	// private Connection getConnection() {
+	// Connection connection = null;
+	//
+	// try{
+	// connection =
+	// DriverManager.getConnection("jdbc:postgresql://localhost:5432/project_test",
+	// "root", "root");
+	// return connection;
+	// } catch (SQLException e) {
+	// e.printStackTrace();
+	// }
+	// return connection;
+	// }
 
 }
