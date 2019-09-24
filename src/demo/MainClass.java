@@ -18,21 +18,19 @@ public class MainClass {
 	private static final String VERSION = "beta version";
 	private static final MyORM myORM = new MyORM (POSTGRESQL_DRIVER);
 	private static final MyORM myORMwithConnectionPool = new MyORM();
+	
+	private static final TestModel testModel1 = new TestModel("value50");
+	private static final TestModel testModel2 = new TestModel(6);
 
 	private static final int ITERATION_NUMBER = 10_000;
 
 	public static void main(String[] args) throws IOException {
 
 		printHeader();
-		// initializeWorkingEntities();
-		// checkProcuctivity();
-		TestModel testModel = new TestModel("value40");
 		
-		myORM.testCreateRecordInDB(testModel);
+//		TestModel testModel = new TestModel("value50");
 		
-		// myORM.deleteTable("test");
-//		myORM.updateData("test", 5, "value39");
-		// myORM.deleteAllData("test");
+		doTest();
 		closeResources();
 
 	}
@@ -50,8 +48,8 @@ public class MainClass {
 	}
 
 	private static void doTest() {
-		// myORM.createTable("TestTable");
-		// myORM.deleteTable("TestTable");
+//		myORM.testCreateRecordInDB(testModel1);
+		myORM.testDeleteRecordFromDB(testModel2);
 	}
 
 	/*

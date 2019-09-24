@@ -19,5 +19,9 @@ public class TestModel {
 	public TestModel(String field) {
 		this.field = field;
 	}
+	
+	public TestModel(int id) {
+		this.id = id;
+	}
 
 }

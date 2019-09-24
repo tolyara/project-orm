@@ -75,35 +75,26 @@ public class MyORM implements DataStorage, AutoCloseable {
 
 	}
 
-	public void testCreateRecordInDB(TestModel testModel) {
+	/*
+	 * Method creates some record in test table
+	 */
+	public void testCreateRecordInDB(Object testModel) {
 
-		// Annotation[] annotations = testModel.getClass().getAnnotations();
-		// for (Annotation annotation : annotations) {
-		// System.out.println(annotation);
-		// }
-		// Class tmClass = TestModel.class;
-
-		// Method[] methods = testModel.getClass().getMethods();
-		// for (Method method : methods) {
-		// System.out.println(method);
-		// }
-
+		/* here we get name of table, where we need to push record */
 		DBModel modelAnnotation = testModel.getClass().getAnnotation(DBModel.class);
 		final String TABLE_NAME = modelAnnotation.tableName().trim();
-		System.out.println(TABLE_NAME);
 
 		String fieldName = "<null>";
 		String fieldValue = "<null>";
 		try {
 			Field parsedField = testModel.getClass().getDeclaredField("field");
-
+			/* getting name of column we need to push record */
 			DBField fieldAnnotation = parsedField.getAnnotation(DBField.class);
 			fieldName = fieldAnnotation.fieldName().trim();
-			System.out.println(fieldName);
 
 			parsedField.setAccessible(true);
+			/* getting value that we need to push */
 			fieldValue = ((String) parsedField.get(testModel)).trim();
-			System.out.println(fieldValue);
 
 		} catch (IllegalArgumentException | IllegalAccessException | NoSuchFieldException e) {
 			e.printStackTrace();
@@ -111,14 +102,8 @@ public class MyORM implements DataStorage, AutoCloseable {
 
 		final String QUERY_CREATE_ON_TABLE = "INSERT INTO " + TABLE_NAME + "(" + fieldName + ")" + " VALUES (?);";
 
-		// PgPreparedStatement pg;
-
 		try (final PreparedStatement statement = this.connection.prepareStatement(QUERY_CREATE_ON_TABLE)) {
-//			System.out.println(statement.getClass());
-//			statement.setString(1, fieldName);
-			statement.setString(1, fieldValue);
-			
-//			statement.setString(2, "'" + fieldValue + "'");			
+			statement.setString(1, fieldValue);		
 			statement.executeUpdate();
 		} catch (SQLException e) {
 			e.printStackTrace();
@@ -131,6 +116,41 @@ public class MyORM implements DataStorage, AutoCloseable {
 		try (final PreparedStatement statement = this.connection.prepareStatement(QUERY_UPDATE_ON_TABLE)) {
 			statement.setString(1, newElementName.trim());
 			statement.setInt(2, elementId);
+			statement.executeUpdate();
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	/*
+	 * Method deletes some record in test table
+	 */
+	public void testDeleteRecordFromDB(Object testModel) {
+
+//		/* here we get name of table, where we need to push record */
+		DBModel modelAnnotation = testModel.getClass().getAnnotation(DBModel.class);
+		final String TABLE_NAME = modelAnnotation.tableName().trim();
+
+		String fieldName = "<null>";
+		Integer fieldValue = -1;
+		try {
+			Field parsedField = testModel.getClass().getDeclaredField("id");
+//			/* getting name of column we need to push record */
+			DBField fieldAnnotation = parsedField.getAnnotation(DBField.class);
+			fieldName = fieldAnnotation.fieldName().trim();
+
+			parsedField.setAccessible(true);
+//			/* getting value that we need to push */
+			fieldValue = ((Integer) parsedField.get(testModel));
+
+		} catch (IllegalArgumentException | IllegalAccessException | NoSuchFieldException e) {
+			e.printStackTrace();
+		}
+
+		final String QUERY_DELETE_ON_TABLE = "DELETE FROM " + TABLE_NAME + " AS test WHERE test." + fieldName + " = ?;";
+
+		try (final PreparedStatement statement = this.connection.prepareStatement(QUERY_DELETE_ON_TABLE)) {
+			statement.setInt(1, fieldValue);		
 			statement.executeUpdate();
 		} catch (SQLException e) {
 			e.printStackTrace();
