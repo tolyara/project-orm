@@ -19,7 +19,7 @@ public class MainClass {
 	private static final MyORM myORM = new MyORM (POSTGRESQL_DRIVER);
 	private static final MyORM myORMwithConnectionPool = new MyORM();
 	
-	private static final TestModel testModel1 = new TestModel("value50");
+	private static final TestModel testModel1 = new TestModel("value111");
 	private static final TestModel testModel2 = new TestModel(6);
 
 	private static final int ITERATION_NUMBER = 10_000;
@@ -30,7 +30,7 @@ public class MainClass {
 		
 //		TestModel testModel = new TestModel("value50");
 		
-		doTest();
+//		doTest();
 		closeResources();
 
 	}
@@ -48,8 +48,8 @@ public class MainClass {
 	}
 
 	private static void doTest() {
-//		myORM.testCreateRecordInDB(testModel1);
-		myORM.testDeleteRecordFromDB(testModel2);
+		myORM.testCreateRecordInDB(testModel1);
+//		myORM.testDeleteRecordFromDB(testModel2);
 	}
 
 	/*

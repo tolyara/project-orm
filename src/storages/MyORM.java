@@ -103,7 +103,7 @@ public class MyORM implements DataStorage, AutoCloseable {
 		final String QUERY_CREATE_ON_TABLE = "INSERT INTO " + TABLE_NAME + "(" + fieldName + ")" + " VALUES (?);";
 
 		try (final PreparedStatement statement = this.connection.prepareStatement(QUERY_CREATE_ON_TABLE)) {
-			statement.setString(1, fieldValue);		
+			statement.setString(1, fieldValue);
 			statement.executeUpdate();
 		} catch (SQLException e) {
 			e.printStackTrace();
@@ -121,13 +121,13 @@ public class MyORM implements DataStorage, AutoCloseable {
 			e.printStackTrace();
 		}
 	}
-	
+
 	/*
 	 * Method deletes some record in test table
 	 */
 	public void testDeleteRecordFromDB(Object testModel) {
 
-//		/* here we get name of table, where we need to push record */
+		/* here we get name of table, where we need to delete record */
 		DBModel modelAnnotation = testModel.getClass().getAnnotation(DBModel.class);
 		final String TABLE_NAME = modelAnnotation.tableName().trim();
 
@@ -135,12 +135,12 @@ public class MyORM implements DataStorage, AutoCloseable {
 		Integer fieldValue = -1;
 		try {
 			Field parsedField = testModel.getClass().getDeclaredField("id");
-//			/* getting name of column we need to push record */
+			/* getting name of the column by which we need to delete record */
 			DBField fieldAnnotation = parsedField.getAnnotation(DBField.class);
 			fieldName = fieldAnnotation.fieldName().trim();
 
 			parsedField.setAccessible(true);
-//			/* getting value that we need to push */
+			/* getting value by which we need to delete record */
 			fieldValue = ((Integer) parsedField.get(testModel));
 
 		} catch (IllegalArgumentException | IllegalAccessException | NoSuchFieldException e) {
@@ -150,7 +150,7 @@ public class MyORM implements DataStorage, AutoCloseable {
 		final String QUERY_DELETE_ON_TABLE = "DELETE FROM " + TABLE_NAME + " AS test WHERE test." + fieldName + " = ?;";
 
 		try (final PreparedStatement statement = this.connection.prepareStatement(QUERY_DELETE_ON_TABLE)) {
-			statement.setInt(1, fieldValue);		
+			statement.setInt(1, fieldValue);
 			statement.executeUpdate();
 		} catch (SQLException e) {
 			e.printStackTrace();
