@@ -58,7 +58,7 @@ public class MainClass {
 	/*
 	 * Method checks time of execution various ways of connection
 	 */
-	private static void checkProcuctivity() {
+	private static void checkProcuctivity() { 
 
 		long start = System.currentTimeMillis();
 		for (int i = 0; i < ITERATION_NUMBER; i++) {
