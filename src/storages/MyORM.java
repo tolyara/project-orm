@@ -95,9 +95,6 @@ public class MyORM implements DataStorage, AutoCloseable {
 		DBModel modelAnnotation = testModel.getClass().getAnnotation(DBModel.class);
 		final String TABLE_NAME = modelAnnotation.tableName().toLowerCase();
 		String primaryKey = modelAnnotation.primaryKey();
-		// DBModel modelAnnotation = (DBModel)
-		// testModel.getClass().getAnnotation(DBModel.class);
-		// primaryKey = modelAnnotation.primaryKey();
 
 		String fieldName = "<null>";
 		String fieldValue = "<null>";
@@ -119,10 +116,6 @@ public class MyORM implements DataStorage, AutoCloseable {
 					e.printStackTrace();
 				}
 			}
-			// preparedColumns.deleteCharAt(preparedColumns.toString().length() - 3); //
-			// deleting last comma
-			// preparedColumns.deleteCharAt(preparedColumns.length() - 1); //
-			// System.out.println(preparedColumns.toString());
 		}
 
 		preparedColumns = new StringBuilder(preparedColumns.toString().trim());
@@ -134,14 +127,10 @@ public class MyORM implements DataStorage, AutoCloseable {
 																											// last
 																											// comma
 
-		// System.out.println(preparedColumns.toString());
-		// System.out.println(preparedValues.toString());
-
 		final String QUERY_CREATE_ON_TABLE = "INSERT INTO " + TABLE_NAME + " (" + preparedColumns.toString() + ")"
 				+ " VALUES (" + preparedValues.toString() + ");";
 
 		try (final PreparedStatement statement = this.connection.prepareStatement(QUERY_CREATE_ON_TABLE)) {
-			// statement.setString(1, fieldValue);
 			statement.executeUpdate();
 		} catch (SQLException e) {
 			e.printStackTrace();
@@ -222,8 +211,6 @@ public class MyORM implements DataStorage, AutoCloseable {
 		primaryKey = modelAnnotation.primaryKey();
 
 		StringBuilder SQLRequest = new StringBuilder(
-				// "CREATE TABLE " + entity.getSimpleName().toLowerCase() + " (" + primaryKey +
-				// " INTEGER not NULL, ");
 				"CREATE TABLE " + entity.getSimpleName().toLowerCase() + " (" + primaryKey + " serial, ");
 
 		for (String name : fields) {
@@ -232,7 +219,6 @@ public class MyORM implements DataStorage, AutoCloseable {
 			}
 		}
 		SQLRequest.append("PRIMARY KEY (" + primaryKey + "))");
-//		System.out.println(SQLRequest);
 		return SQLRequest.toString();
 	}
 
