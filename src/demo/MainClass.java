@@ -4,6 +4,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
 
+import models.Client;
 import models.TestModel;
 import service.MyOut;
 import storages.DataStorage;
@@ -14,13 +15,14 @@ import storages.MyORM;
  */
 public class MainClass {
 
-	private static final String POSTGRESQL_DRIVER = "org.postgresql.Driver";
+	public static final String POSTGRESQL_DRIVER = "org.postgresql.Driver";
 	private static final String VERSION = "beta version";
 	private static final MyORM myORM = new MyORM (POSTGRESQL_DRIVER);
 	private static final MyORM myORMwithConnectionPool = new MyORM();
 	
-	private static final TestModel testModel1 = new TestModel("value111");
-	private static final TestModel testModel2 = new TestModel(6);
+	private static final TestModel TEST_MODEL_1 = new TestModel("value123");
+	private static final TestModel TEST_MODEL_2 = new TestModel(6);
+	private static final Client CLIENT = new Client("Melchenko", "Anatoliy", "false");
 
 	private static final int ITERATION_NUMBER = 10_000;
 
@@ -30,7 +32,7 @@ public class MainClass {
 		
 //		TestModel testModel = new TestModel("value50");
 		
-//		doTest();
+		doTest();
 		closeResources();
 
 	}
@@ -48,7 +50,8 @@ public class MainClass {
 	}
 
 	private static void doTest() {
-		myORM.testCreateRecordInDB(testModel1);
+		myORM.createTable(Client.class);
+//		myORM.testCreateRecordInDB(CLIENT);
 //		myORM.testDeleteRecordFromDB(testModel2);
 	}
 

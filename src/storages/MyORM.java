@@ -2,10 +2,8 @@ package storages;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.*;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
+import java.sql.*;
+import java.util.*;
 
 import org.postgresql.jdbc.*;
 
@@ -13,9 +11,10 @@ import annotations.DBField;
 import annotations.DBModel;
 import models.TestModel;
 
-//TODO - возможность передать в запрос имя табл. +++
-
 import service.Settings;
+
+//TODO - возможность передать в запрос имя табл. +++
+//TODO - возможность делать имена полей в БД (имя табл. + имя поля) 
 
 /**
  * Class implements interaction with database
@@ -23,6 +22,10 @@ import service.Settings;
 public class MyORM implements DataStorage, AutoCloseable {
 
 	private Connection connection;
+
+	public Connection getConnection() {
+		return connection;
+	}
 
 	private static final String QUERY_CREATE_TABLE = "CREATE TABLE ? ( test_id serial PRIMARY KEY, test_field VARCHAR(20) );";
 	private static final String QUERY_DROP_TABLE = "DROP TABLE (?);";
@@ -52,16 +55,24 @@ public class MyORM implements DataStorage, AutoCloseable {
 		}
 	}
 
-	public void createTable(String tableName) {
+	public void createTable(Class entity) {
 
-		// try (final PreparedStatement statement =
-		// this.connection.prepareStatement(QUERY_CREATE_TABLE)) {
-		// statement.setString(1, nameTable.trim());
-		// statement.executeUpdate();
-		// } catch (SQLException e) {
-		// e.printStackTrace();
-		// }
+		Statement statement = null;
+		try {
+			statement = connection.createStatement();
+			statement.executeUpdate(getSQLRequest(entity, getFieldsNames(entity)));
 
+		} catch (SQLException e) {
+			e.printStackTrace();
+		} finally {
+			try {
+				if (statement != null) {
+					statement.close();
+				}
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+		}
 	}
 
 	public void deleteTable(String tableName) {
@@ -80,30 +91,57 @@ public class MyORM implements DataStorage, AutoCloseable {
 	 */
 	public void testCreateRecordInDB(Object testModel) {
 
-		/* here we get name of table, where we need to push record */
+		/* here we get name and PK of table, where we need to push record */
 		DBModel modelAnnotation = testModel.getClass().getAnnotation(DBModel.class);
-		final String TABLE_NAME = modelAnnotation.tableName().trim();
+		final String TABLE_NAME = modelAnnotation.tableName().toLowerCase();
+		String primaryKey = modelAnnotation.primaryKey();
+		// DBModel modelAnnotation = (DBModel)
+		// testModel.getClass().getAnnotation(DBModel.class);
+		// primaryKey = modelAnnotation.primaryKey();
 
 		String fieldName = "<null>";
 		String fieldValue = "<null>";
-		try {
-			Field parsedField = testModel.getClass().getDeclaredField("field");
-			/* getting name of column we need to push record */
-			DBField fieldAnnotation = parsedField.getAnnotation(DBField.class);
-			fieldName = fieldAnnotation.fieldName().trim();
+		StringBuilder preparedColumns = new StringBuilder();
+		StringBuilder preparedValues = new StringBuilder();
 
-			parsedField.setAccessible(true);
-			/* getting value that we need to push */
-			fieldValue = ((String) parsedField.get(testModel)).trim();
+		for (Field parsedField : testModel.getClass().getDeclaredFields()) {
+			fieldName = parsedField.getName(); /* getting name of column we need to push record */
+			if (!fieldName.toLowerCase().equals(primaryKey)) { /* skip field that is PK */
+				try {
+					preparedColumns.append(fieldName.toLowerCase() + ", ");
 
-		} catch (IllegalArgumentException | IllegalAccessException | NoSuchFieldException e) {
-			e.printStackTrace();
+					parsedField.setAccessible(true);
+					/* getting value that we need to push */
+					fieldValue = ((String) parsedField.get(testModel)).trim();
+					preparedValues.append(fieldValue + ", ");
+
+				} catch (IllegalArgumentException | IllegalAccessException e) {
+					e.printStackTrace();
+				}
+			}
+			// preparedColumns.deleteCharAt(preparedColumns.toString().length() - 3); //
+			// deleting last comma
+			// preparedColumns.deleteCharAt(preparedColumns.length() - 1); //
+			// System.out.println(preparedColumns.toString());
 		}
 
-		final String QUERY_CREATE_ON_TABLE = "INSERT INTO " + TABLE_NAME + "(" + fieldName + ")" + " VALUES (?);";
+		preparedColumns = new StringBuilder(preparedColumns.toString().trim());
+		preparedValues = new StringBuilder(preparedValues.toString().trim());
+		preparedColumns.delete(preparedColumns.toString().length() - 1, preparedColumns.toString().length()); // deleting
+																												// last
+																												// comma
+		preparedValues.delete(preparedValues.toString().length() - 1, preparedValues.toString().length()); // deleting
+																											// last
+																											// comma
+
+		// System.out.println(preparedColumns.toString());
+		// System.out.println(preparedValues.toString());
+
+		final String QUERY_CREATE_ON_TABLE = "INSERT INTO " + TABLE_NAME + " (" + preparedColumns.toString() + ")"
+				+ " VALUES (" + preparedValues.toString() + ");";
 
 		try (final PreparedStatement statement = this.connection.prepareStatement(QUERY_CREATE_ON_TABLE)) {
-			statement.setString(1, fieldValue);
+			// statement.setString(1, fieldValue);
 			statement.executeUpdate();
 		} catch (SQLException e) {
 			e.printStackTrace();
@@ -173,6 +211,41 @@ public class MyORM implements DataStorage, AutoCloseable {
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
+	}
+
+	// Method creates SQL request for creating new table.
+	private String getSQLRequest(Class entity, List<String> fields) {
+
+		/* here we get the name of primary key of table */
+		String primaryKey = "<null>";
+		DBModel modelAnnotation = (DBModel) entity.getAnnotation(DBModel.class);
+		primaryKey = modelAnnotation.primaryKey();
+
+		StringBuilder SQLRequest = new StringBuilder(
+				// "CREATE TABLE " + entity.getSimpleName().toLowerCase() + " (" + primaryKey +
+				// " INTEGER not NULL, ");
+				"CREATE TABLE " + entity.getSimpleName().toLowerCase() + " (" + primaryKey + " serial, ");
+
+		for (String name : fields) {
+			if (!name.equals(primaryKey)) {
+				SQLRequest.append(name).append(" VARCHAR(45), ");
+			}
+		}
+		SQLRequest.append("PRIMARY KEY (" + primaryKey + "))");
+//		System.out.println(SQLRequest);
+		return SQLRequest.toString();
+	}
+
+	// Get fields name from entity class with reflection
+	private List<String> getFieldsNames(Class entity) {
+		Field[] allFields = entity.getDeclaredFields();
+		List<String> nameFields = new ArrayList<>();
+		for (Field f : allFields) {
+			if (f.isAnnotationPresent(DBField.class)) {
+				nameFields.add(f.getName());
+			}
+		}
+		return nameFields;
 	}
 
 }
