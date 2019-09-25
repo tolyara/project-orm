@@ -13,10 +13,6 @@ import annotations.*;
 
 public class TestCreateRecordInDB {
 
-	// public static void main(String[] args) throws IOException {
-	// new TestCreateRecordInDB().testCreate();
-	// }
-
 	@Test
 	public void testCreate() {
 
@@ -27,9 +23,7 @@ public class TestCreateRecordInDB {
 
 		try (final Statement statement = myORM.getConnection().createStatement();
 				final ResultSet rs = statement.executeQuery(QUERY_SELECT)) {
-			// sizeBefore = rs.getFetchSize();
 			while (rs.next()) {
-				// System.out.println(rs.getInt("test_id"));
 				sizeBefore++;
 			}
 		} catch (SQLException e) {
@@ -41,7 +35,6 @@ public class TestCreateRecordInDB {
 		try (final Statement statement2 = myORM.getConnection().createStatement();
 				final ResultSet rs = statement2.executeQuery(QUERY_SELECT)) {
 			while (rs.next()) {
-				// System.out.println(rs.getInt("test_id"));
 				sizeAfter++;
 			}
 		} catch (SQLException e) {
