@@ -6,17 +6,17 @@ import annotations.DBModel;
 @DBModel(tableName = "Client", primaryKey = "id")
 public class Client {
 	
-	@DBField (fieldName = "client_id", isAutoIncrement = true)
+	@DBField (fieldName = "id", isAutoIncrement = true)
 	private int id;
 
-	@DBField (fieldName = "client_surname")
+	@DBField (fieldName = "surname")
 	private String surname;
 	
-	@DBField (fieldName = "client_name")
+	@DBField (fieldName = "name")
 	private String name;
 	
-	@DBField (fieldName = "client_is_girl")
-	private boolean isGirl;
+	@DBField (fieldName = "isgirl")
+	private String isGirl;
 
 	public Client() {
 
@@ -30,9 +30,16 @@ public class Client {
 		this.id = id;
 	}
 
-	public Client(int id, String surname, String name, boolean isGirl) {
+	public Client(int id, String surname, String name, String isGirl) {
 		super();
 		this.id = id;
+		this.surname = surname;
+		this.name = name;
+		this.isGirl = isGirl;
+	}
+
+	public Client(String surname, String name, String isGirl) {
+		super();
 		this.surname = surname;
 		this.name = name;
 		this.isGirl = isGirl;
