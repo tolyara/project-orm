@@ -55,14 +55,14 @@ public class MainClass {
 
 		long start = System.currentTimeMillis();
 		for (int i = 0; i < ITERATION_NUMBER; i++) {
-			myORM.updateData("test", 4, "value");
+			myORM.updateDataOnTestTable("test", 4, "value");
 		}
 		long finish = System.currentTimeMillis();
 		System.out.println("Finished in : " + (finish - start) + " millis");
 
 		start = System.currentTimeMillis();
 		for (int i = 0; i < ITERATION_NUMBER; i++) {
-			myORMwithConnectionPool.updateData("test", 4, "value");
+			myORMwithConnectionPool.updateDataOnTestTable("test", 4, "value");
 		}
 		finish = System.currentTimeMillis();
 		System.out.println("Finished in : " + (finish - start) + " millis");
