@@ -36,7 +36,7 @@ public class TestCreateRecordInDB {
 			e.printStackTrace();
 		}
 
-		myORM.testCreateRecordInDB("testValue1");
+		myORM.createRecordInTable("testValue1");
 
 		try (final Statement statement2 = myORM.getConnection().createStatement();
 				final ResultSet rs = statement2.executeQuery(QUERY_SELECT)) {

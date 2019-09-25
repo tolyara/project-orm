@@ -6,7 +6,6 @@ import java.io.PrintStream;
 
 import models.Client;
 import models.TestModel;
-import service.MyOut;
 import storages.DataStorage;
 import storages.MyORM;
 
@@ -20,18 +19,13 @@ public class MainClass {
 	private static final MyORM myORM = new MyORM (POSTGRESQL_DRIVER);
 	private static final MyORM myORMwithConnectionPool = new MyORM();
 	
-	private static final TestModel TEST_MODEL_1 = new TestModel("value123");
-	private static final TestModel TEST_MODEL_2 = new TestModel(6);
 	private static final Client CLIENT = new Client("Melchenko", "Anatoliy", "false");
 
 	private static final int ITERATION_NUMBER = 10_000;
 
 	public static void main(String[] args) throws IOException {
 
-		printHeader();
-		
-//		TestModel testModel = new TestModel("value50");
-		
+		printHeader();		
 		doTest();
 		closeResources();
 
@@ -51,8 +45,7 @@ public class MainClass {
 
 	private static void doTest() {
 		myORM.createTable(Client.class);
-//		myORM.testCreateRecordInDB(CLIENT);
-//		myORM.testDeleteRecordFromDB(testModel2);
+		myORM.createRecordInTable(CLIENT);
 	}
 
 	/*

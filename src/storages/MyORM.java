@@ -13,9 +13,6 @@ import models.TestModel;
 
 import service.Settings;
 
-//TODO - возможность передать в запрос имя табл. +++
-//TODO - возможность делать имена полей в БД (имя табл. + имя поля) 
-
 /**
  * Class implements interaction with database
  */
@@ -26,13 +23,6 @@ public class MyORM implements DataStorage, AutoCloseable {
 	public Connection getConnection() {
 		return connection;
 	}
-
-	private static final String QUERY_CREATE_TABLE = "CREATE TABLE ? ( test_id serial PRIMARY KEY, test_field VARCHAR(20) );";
-	private static final String QUERY_DROP_TABLE = "DROP TABLE (?);";
-	private static final String QUERY_INSERT = "INSERT INTO test (test_field) VALUES (?);";
-	private static final String QUERY_DELETE = "DELETE FROM ?;";
-	private static final String QUERY_UPDATE = "UPDATE test AS test SET test_field = ? WHERE test.test_id = ?;";
-	private static final String QUERY_DROP_AND_CREATE_TABLE = "DROP TABLE ?;" + "CREATE TABLE ?;";
 
 	public MyORM() {
 		try {
@@ -77,27 +67,19 @@ public class MyORM implements DataStorage, AutoCloseable {
 
 	public void deleteTable(String tableName) {
 
-		try (final PreparedStatement statement = this.connection.prepareStatement(QUERY_DROP_TABLE)) {
-			statement.setString(1, tableName.trim());
-			statement.executeUpdate();
-		} catch (SQLException e) {
-			e.printStackTrace();
-		}
+		
 
 	}
 
 	/*
 	 * Method creates some record in test table
 	 */
-	public void testCreateRecordInDB(Object testModel) {
+	public void createRecordInTable(Object testModel) {
 
 		/* here we get name and PK of table, where we need to push record */
 		DBModel modelAnnotation = testModel.getClass().getAnnotation(DBModel.class);
 		final String TABLE_NAME = modelAnnotation.tableName().toLowerCase();
 		String primaryKey = modelAnnotation.primaryKey();
-		// DBModel modelAnnotation = (DBModel)
-		// testModel.getClass().getAnnotation(DBModel.class);
-		// primaryKey = modelAnnotation.primaryKey();
 
 		String fieldName = "<null>";
 		String fieldValue = "<null>";
@@ -119,10 +101,6 @@ public class MyORM implements DataStorage, AutoCloseable {
 					e.printStackTrace();
 				}
 			}
-			// preparedColumns.deleteCharAt(preparedColumns.toString().length() - 3); //
-			// deleting last comma
-			// preparedColumns.deleteCharAt(preparedColumns.length() - 1); //
-			// System.out.println(preparedColumns.toString());
 		}
 
 		preparedColumns = new StringBuilder(preparedColumns.toString().trim());
@@ -134,21 +112,17 @@ public class MyORM implements DataStorage, AutoCloseable {
 																											// last
 																											// comma
 
-		// System.out.println(preparedColumns.toString());
-		// System.out.println(preparedValues.toString());
-
 		final String QUERY_CREATE_ON_TABLE = "INSERT INTO " + TABLE_NAME + " (" + preparedColumns.toString() + ")"
 				+ " VALUES (" + preparedValues.toString() + ");";
 
 		try (final PreparedStatement statement = this.connection.prepareStatement(QUERY_CREATE_ON_TABLE)) {
-			// statement.setString(1, fieldValue);
 			statement.executeUpdate();
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
 	}
 
-	public void updateData(String tableName, int elementId, String newElementName) {
+	public void updateDataOnTestTable(String tableName, int elementId, String newElementName) {
 		final String QUERY_UPDATE_ON_TABLE = "UPDATE " + tableName
 				+ " AS test SET test_field = ? WHERE test.test_id = ?;";
 		try (final PreparedStatement statement = this.connection.prepareStatement(QUERY_UPDATE_ON_TABLE)) {
@@ -163,45 +137,8 @@ public class MyORM implements DataStorage, AutoCloseable {
 	/*
 	 * Method deletes some record in test table by field "id"
 	 */
-	public void testDeleteRecordFromDB(Object testModel) {
+	public void deleteRecordFromTable(Object model) {
 
-		/* here we get name of table, where we need to delete record */
-		DBModel modelAnnotation = testModel.getClass().getAnnotation(DBModel.class);
-		final String TABLE_NAME = modelAnnotation.tableName().trim();
-
-		String fieldName = "<null>";
-		Integer fieldValue = -1;
-		try {
-			Field parsedField = testModel.getClass().getDeclaredField("id");
-			/* getting name of the column by which we need to delete record */
-			DBField fieldAnnotation = parsedField.getAnnotation(DBField.class);
-			fieldName = fieldAnnotation.fieldName().trim();
-
-			parsedField.setAccessible(true);
-			/* getting value by which we need to delete record */
-			fieldValue = ((Integer) parsedField.get(testModel));
-
-		} catch (IllegalArgumentException | IllegalAccessException | NoSuchFieldException e) {
-			e.printStackTrace();
-		}
-
-		final String QUERY_DELETE_ON_TABLE = "DELETE FROM " + TABLE_NAME + " AS test WHERE test." + fieldName + " = ?;";
-
-		try (final PreparedStatement statement = this.connection.prepareStatement(QUERY_DELETE_ON_TABLE)) {
-			statement.setInt(1, fieldValue);
-			statement.executeUpdate();
-		} catch (SQLException e) {
-			e.printStackTrace();
-		}
-	}
-
-	public void deleteAllData(String tableName) {
-		try (final PreparedStatement statement = this.connection.prepareStatement(QUERY_DELETE)) {
-			statement.setString(1, tableName.trim());
-			statement.executeUpdate();
-		} catch (SQLException e) {
-			e.printStackTrace();
-		}
 	}
 
 	@Override
@@ -222,8 +159,6 @@ public class MyORM implements DataStorage, AutoCloseable {
 		primaryKey = modelAnnotation.primaryKey();
 
 		StringBuilder SQLRequest = new StringBuilder(
-				// "CREATE TABLE " + entity.getSimpleName().toLowerCase() + " (" + primaryKey +
-				// " INTEGER not NULL, ");
 				"CREATE TABLE " + entity.getSimpleName().toLowerCase() + " (" + primaryKey + " serial, ");
 
 		for (String name : fields) {
@@ -232,7 +167,6 @@ public class MyORM implements DataStorage, AutoCloseable {
 			}
 		}
 		SQLRequest.append("PRIMARY KEY (" + primaryKey + "))");
-//		System.out.println(SQLRequest);
 		return SQLRequest.toString();
 	}
 
