@@ -1,4 +1,4 @@
-package com.projectorm.test;
+package test;
 
 import java.lang.reflect.Field;
 import java.sql.Connection;
@@ -31,7 +31,7 @@ public class CreateTable {
 
 
 //    Method creates SQL request for creating new table.
-    private String getSQLRequest (Class entity, List<String> fields) {
+    private static String getSQLRequest(Class entity, List<String> fields) {
         StringBuilder SQLRequest = new StringBuilder("CREATE TABLE " + entity.getSimpleName().toLowerCase()
                 + " (id INTEGER not NULL, ");
         for (String name : fields){
@@ -42,7 +42,7 @@ public class CreateTable {
     }
 
 //    Get fields name from entity class with reflection
-    private List<String> getFieldsNames (Class entity){
+    private static List<String> getFieldsNames(Class entity){
         Field[] allFields = entity.getDeclaredFields();
         List<String> nameFields = new ArrayList<>();
         for (Field f: allFields){
@@ -54,7 +54,7 @@ public class CreateTable {
     }
 
 //    Connection only for PostgreSQL. Need create flexible method for another DB
-    private Connection getConnection() {
+    private static Connection getConnection() {
         Connection connection = null;
 
         try{

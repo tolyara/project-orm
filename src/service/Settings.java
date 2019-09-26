@@ -14,7 +14,7 @@ public class Settings {
 
     private Settings() {
         try {
-            properties.load(new FileInputStream(this.getClass().getClassLoader().getResource("./resources/orm.properties").getFile()));
+            properties.load(new FileInputStream(("C:\\Users\\Дмитрий\\IdeaProjects\\ProjectORM\\src\\resources\\orm.properties")));
         } catch (IOException e) {
             e.printStackTrace();
         }

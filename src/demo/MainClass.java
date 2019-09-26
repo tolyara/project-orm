@@ -3,11 +3,13 @@ package demo;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
+import java.sql.Date;
 
 import models.Client;
 import models.TestModel;
 import storages.DataStorage;
 import storages.MyORM;
+import transactions.Transaction;
 
 /**
  * Class demonstrates the job with project main entities
@@ -21,7 +23,7 @@ public class MainClass {
 	
 	private static final TestModel TEST_MODEL_1 = new TestModel("value124");
 	private static final TestModel TEST_MODEL_2 = new TestModel(6);
-	private static final Client CLIENT = new Client("Petrov", "Petr", "false");
+	private static final Client CLIENT = new Client("Petrov", "Petr " + System.currentTimeMillis(), "false");
 
 	private static final int ITERATION_NUMBER = 10_000;
 
@@ -46,10 +48,16 @@ public class MainClass {
 	}
 
 	private static void doDemo() {
-		myORM.createTable(TestModel.class);
+		//myORM.createTable(TestModel.class);
 //		System.out.println(myORM.сreateRecordInTable(CLIENT));
+		Transaction transaction = new Transaction();
+		transaction.openConnection();
+		myORM.createRecordInTable(CLIENT);
+		transaction.commit();
+		//transaction.commit();
 
-//		myORM.deleteRecordInTableByPK(Client.class, 7);
+		//transaction.close();
+		//myORM.deleteRecordInTableByPK(Client.class, 7);
 //		myORM.deleteTable(TestModel.class);
 //		myORM.testDeleteRecordFromDB(testModel2);
 	}

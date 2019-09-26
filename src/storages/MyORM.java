@@ -18,9 +18,9 @@ import service.Settings;
  */
 public class MyORM implements DataStorage, AutoCloseable {
 
-	private Connection connection;
+	private static Connection connection;
 
-	public Connection getConnection() {
+	public static Connection getConnection() {
 		return connection;
 	}
 
@@ -85,7 +85,7 @@ public class MyORM implements DataStorage, AutoCloseable {
 	/*
 	 * Method creates some record in table
 	 */
-	public int сreateRecordInTable(Object model) {
+	public int createRecordInTable(Object model) {
 
 		/* here we get name and PK of table, where we need to push record */
 		DBModel modelAnnotation = model.getClass().getAnnotation(DBModel.class);
