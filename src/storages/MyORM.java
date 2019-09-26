@@ -1,22 +1,18 @@
 package storages;
 
-import java.lang.annotation.Annotation;
 import java.lang.reflect.*;
 import java.sql.*;
 import java.util.*;
 
-import org.postgresql.jdbc.*;
-
 import annotations.DBField;
 import annotations.DBModel;
-import models.TestModel;
 
 import service.Settings;
 
 /**
  * Class implements interaction with database
  */
-public class MyORM implements DataStorage, AutoCloseable {
+public class MyORM implements AutoCloseable {
 
 	private Connection connection;
 
@@ -70,11 +66,9 @@ public class MyORM implements DataStorage, AutoCloseable {
 		DBModel modelAnnotation = (DBModel) entity.getAnnotation(DBModel.class);
 		final String TABLE_NAME = modelAnnotation.tableName();
 		
-		final String QUERY_DELETE_TABLE = "DROP TABLE ? RESTRICT;";
-		System.out.println(QUERY_DELETE_TABLE);
+		final String QUERY_DELETE_TABLE = "DROP TABLE " + TABLE_NAME + " RESTRICT;";
 
 		try (final PreparedStatement statement = this.connection.prepareStatement(QUERY_DELETE_TABLE)) {
-			statement.setString(1, TABLE_NAME);
 			statement.executeUpdate();
 		} catch (SQLException e) {
 			e.printStackTrace();
