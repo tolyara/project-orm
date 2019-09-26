@@ -5,6 +5,7 @@ import static org.junit.Assert.*;
 import java.io.IOException;
 import java.sql.*;
 
+import org.junit.Before;
 import org.junit.Test;
 
 import demo.MainClass;
@@ -12,15 +13,17 @@ import storages.MyORM;
 import annotations.*;
 
 public class TestCreateRecordInDB {
+	
+	private MyORM myORM;
 
-	// public static void main(String[] args) throws IOException {
-	// new TestCreateRecordInDB().testCreate();
-	// }
+	@Before
+	public void setUp() throws Exception {
+		myORM = new MyORM(MainClass.POSTGRESQL_DRIVER);
+	}
 
 	@Test
 	public void testCreate() {
 
-		final MyORM myORM = new MyORM(MainClass.POSTGRESQL_DRIVER);
 		final String QUERY_SELECT = "SELECT * FROM test;";
 		int sizeBefore = 0;
 		int sizeAfter = 0;

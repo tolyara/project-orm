@@ -87,54 +87,35 @@ public class MyORM implements DataStorage, AutoCloseable {
 	}
 
 	/*
-	 * Method creates some record in test table
+	 * Method creates some record in table
 	 */
-	public void testCreateRecordInDB(Object testModel) {
+	public int сreateRecordInTable(Object model) {
 
 		/* here we get name and PK of table, where we need to push record */
-		DBModel modelAnnotation = testModel.getClass().getAnnotation(DBModel.class);
+		DBModel modelAnnotation = model.getClass().getAnnotation(DBModel.class);
 		final String TABLE_NAME = modelAnnotation.tableName().toLowerCase();
-		String primaryKey = modelAnnotation.primaryKey();
-
-		String fieldName = "<null>";
-		String fieldValue = "<null>";
-		StringBuilder preparedColumns = new StringBuilder();
-		StringBuilder preparedValues = new StringBuilder();
-
-		for (Field parsedField : testModel.getClass().getDeclaredFields()) {
-			fieldName = parsedField.getName(); /* getting name of column we need to push record */
-			if (!fieldName.toLowerCase().equals(primaryKey)) { /* skip field that is PK */
-				try {
-					preparedColumns.append(fieldName.toLowerCase() + ", ");
-
-					parsedField.setAccessible(true);
-					/* getting value that we need to push */
-					fieldValue = ((String) parsedField.get(testModel)).trim();
-					preparedValues.append(fieldValue + ", ");
-
-				} catch (IllegalArgumentException | IllegalAccessException e) {
-					e.printStackTrace();
-				}
-			}
-		}
-
-		preparedColumns = new StringBuilder(preparedColumns.toString().trim());
-		preparedValues = new StringBuilder(preparedValues.toString().trim());
-		preparedColumns.delete(preparedColumns.toString().length() - 1, preparedColumns.toString().length()); // deleting
-																												// last
-																												// comma
-		preparedValues.delete(preparedValues.toString().length() - 1, preparedValues.toString().length()); // deleting
-																											// last
-																											// comma
-
-		final String QUERY_CREATE_ON_TABLE = "INSERT INTO " + TABLE_NAME + " (" + preparedColumns.toString() + ")"
-				+ " VALUES (" + preparedValues.toString() + ");";
-
-		try (final PreparedStatement statement = this.connection.prepareStatement(QUERY_CREATE_ON_TABLE)) {
+		String primaryKey = modelAnnotation.primaryKey().toLowerCase();
+		int addedRecordId = -1;
+		
+		final String preparedColumns = getPreparedColumns(model, primaryKey);
+		final String preparedValues = getPreparedValues(model, primaryKey);
+		final String QUERY_CREATE_ON_TABLE = "INSERT INTO " + TABLE_NAME + " (" + preparedColumns + ")"
+				+ " VALUES (" + preparedValues + ");";
+		System.out.println(QUERY_CREATE_ON_TABLE);
+		try (final PreparedStatement statement = this.connection.prepareStatement(QUERY_CREATE_ON_TABLE, Statement.RETURN_GENERATED_KEYS)) {			
 			statement.executeUpdate();
+			try (ResultSet generatedKeys = statement.getGeneratedKeys()) {
+				if (generatedKeys.next()) {
+				addedRecordId = generatedKeys.getInt(1);
+				} else {
+					throw new IllegalStateException("Could not return PK of added client!");
+				}
+			}			
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
+		
+		return addedRecordId;
 	}
 
 	public void updateData(String tableName, int elementId, String newElementName) {
@@ -152,7 +133,7 @@ public class MyORM implements DataStorage, AutoCloseable {
 	/*
 	 * Method deletes some record in test table by field "id"
 	 */
-	public void testDeleteRecordFromDB(Object testModel) {
+	public void testDeleteRecordTable(Object testModel) {
 
 		/* here we get name of table, where we need to delete record */
 		DBModel modelAnnotation = testModel.getClass().getAnnotation(DBModel.class);
@@ -232,6 +213,56 @@ public class MyORM implements DataStorage, AutoCloseable {
 			}
 		}
 		return nameFields;
+	}
+	
+	private String getPreparedColumns(Object model, String primaryKey) {
+		
+		String fieldName = "<null>"; 
+		StringBuilder preparedColumns = new StringBuilder();
+		String columns = "<null>";
+
+		for (Field parsedField : model.getClass().getDeclaredFields()) {
+			fieldName = parsedField.getName(); /* getting name of column we need to push record */
+			if (!fieldName.toLowerCase().equals(primaryKey)) { /* skip field that is PK */
+				try {
+					preparedColumns.append(fieldName.toLowerCase() + ", ");
+				} catch (IllegalArgumentException e) {
+					e.printStackTrace();
+				}
+			}
+		}
+		preparedColumns = new StringBuilder(preparedColumns.toString().trim());
+		/* deleting last comma */
+		preparedColumns.delete(preparedColumns.toString().length() - 1, preparedColumns.toString().length()); 
+		columns = preparedColumns.toString();
+		return columns;		
+	}
+	
+	private String getPreparedValues(Object model, String primaryKey) {
+		
+		String fieldName = "<null>"; 
+		String fieldValue = "<null>";
+		StringBuilder preparedValues = new StringBuilder();
+		String values = "<null>";
+
+		for (Field parsedField : model.getClass().getDeclaredFields()) {
+			fieldName = parsedField.getName(); /* getting name of column we need to push record */
+			if (!fieldName.toLowerCase().equals(primaryKey)) { /* skip field that is PK */
+				try {
+					parsedField.setAccessible(true);
+					/* getting value that we need to push */
+					fieldValue = ((String) parsedField.get(model)).trim();
+					preparedValues.append("'" + fieldValue + "'" + ", ");
+				} catch (IllegalArgumentException | IllegalAccessException e) {
+					e.printStackTrace();
+				}
+			}
+		}
+		preparedValues = new StringBuilder(preparedValues.toString().trim());
+		/* deleting last comma */
+		preparedValues.delete(preparedValues.toString().length() - 1, preparedValues.toString().length()); 
+		values = preparedValues.toString();
+		return values;		
 	}
 
 }
