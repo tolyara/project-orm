@@ -6,10 +6,10 @@ import annotations.DBModel;
 @DBModel(tableName = "test", primaryKey = "id")
 public class TestModel {
 	
-	@DBField (fieldName = "test_id", isAutoIncrement = true)
+	@DBField (fieldName = "id", isAutoIncrement = true)
 	private int id;
 
-	@DBField (fieldName = "test_field")
+	@DBField (fieldName = "field")
 	private String field;
 
 	public TestModel() {
