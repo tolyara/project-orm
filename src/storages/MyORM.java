@@ -75,10 +75,16 @@ public class MyORM implements DataStorage, AutoCloseable {
 		}
 	}
 
-	public void deleteTable(String tableName) {
+	public void deleteTable(Class entity) {
+		
+		DBModel modelAnnotation = (DBModel) entity.getAnnotation(DBModel.class);
+		final String TABLE_NAME = modelAnnotation.tableName();
+		
+		final String QUERY_DELETE_TABLE = "DROP TABLE ? RESTRICT;";
+		System.out.println(QUERY_DELETE_TABLE);
 
-		try (final PreparedStatement statement = this.connection.prepareStatement(QUERY_DROP_TABLE)) {
-			statement.setString(1, tableName.trim());
+		try (final PreparedStatement statement = this.connection.prepareStatement(QUERY_DELETE_TABLE)) {
+			statement.setString(1, TABLE_NAME);
 			statement.executeUpdate();
 		} catch (SQLException e) {
 			e.printStackTrace();
@@ -101,7 +107,6 @@ public class MyORM implements DataStorage, AutoCloseable {
 		final String preparedValues = getPreparedValues(model, primaryKey);
 		final String QUERY_CREATE_ON_TABLE = "INSERT INTO " + TABLE_NAME + " (" + preparedColumns + ")"
 				+ " VALUES (" + preparedValues + ");";
-		System.out.println(QUERY_CREATE_ON_TABLE);
 		try (final PreparedStatement statement = this.connection.prepareStatement(QUERY_CREATE_ON_TABLE, Statement.RETURN_GENERATED_KEYS)) {			
 			statement.executeUpdate();
 			try (ResultSet generatedKeys = statement.getGeneratedKeys()) {
@@ -131,34 +136,19 @@ public class MyORM implements DataStorage, AutoCloseable {
 	}
 
 	/*
-	 * Method deletes some record in test table by field "id"
+	 * Method deletes record in table by value of field that is primary key
 	 */
-	public void testDeleteRecordTable(Object testModel) {
+	public void deleteRecordInTableByPK(Class entity, int keyValue) {
 
 		/* here we get name of table, where we need to delete record */
-		DBModel modelAnnotation = testModel.getClass().getAnnotation(DBModel.class);
-		final String TABLE_NAME = modelAnnotation.tableName().trim();
+		DBModel modelAnnotation = (DBModel) entity.getAnnotation(DBModel.class);
+		final String TABLE_NAME = modelAnnotation.tableName();
+		String primaryKey = modelAnnotation.primaryKey();
 
-		String fieldName = "<null>";
-		Integer fieldValue = -1;
-		try {
-			Field parsedField = testModel.getClass().getDeclaredField("id");
-			/* getting name of the column by which we need to delete record */
-			DBField fieldAnnotation = parsedField.getAnnotation(DBField.class);
-			fieldName = fieldAnnotation.fieldName().trim();
-
-			parsedField.setAccessible(true);
-			/* getting value by which we need to delete record */
-			fieldValue = ((Integer) parsedField.get(testModel));
-
-		} catch (IllegalArgumentException | IllegalAccessException | NoSuchFieldException e) {
-			e.printStackTrace();
-		}
-
-		final String QUERY_DELETE_ON_TABLE = "DELETE FROM " + TABLE_NAME + " AS test WHERE test." + fieldName + " = ?;";
+		final String QUERY_DELETE_ON_TABLE = "DELETE FROM " + TABLE_NAME + " WHERE " + primaryKey + " = ?;";
 
 		try (final PreparedStatement statement = this.connection.prepareStatement(QUERY_DELETE_ON_TABLE)) {
-			statement.setInt(1, fieldValue);
+			statement.setInt(1, keyValue);
 			statement.executeUpdate();
 		} catch (SQLException e) {
 			e.printStackTrace();
@@ -192,7 +182,7 @@ public class MyORM implements DataStorage, AutoCloseable {
 		primaryKey = modelAnnotation.primaryKey();
 
 		StringBuilder SQLRequest = new StringBuilder(
-				"CREATE TABLE " + entity.getSimpleName().toLowerCase() + " (" + primaryKey + " serial, ");
+				"CREATE TABLE " + modelAnnotation.tableName().toLowerCase() + " (" + primaryKey + " serial, ");
 
 		for (String name : fields) {
 			if (!name.equals(primaryKey)) {

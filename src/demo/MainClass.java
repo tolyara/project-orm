@@ -19,7 +19,7 @@ public class MainClass {
 	private static final MyORM myORM = new MyORM (POSTGRESQL_DRIVER);
 	private static final MyORM myORMwithConnectionPool = new MyORM();
 	
-	private static final TestModel TEST_MODEL_1 = new TestModel("value123");
+	private static final TestModel TEST_MODEL_1 = new TestModel("value124");
 	private static final TestModel TEST_MODEL_2 = new TestModel(6);
 	private static final Client CLIENT = new Client("Petrov", "Petr", "false");
 
@@ -27,11 +27,8 @@ public class MainClass {
 
 	public static void main(String[] args) throws IOException {
 
-		printHeader();
-		
-//		TestModel testModel = new TestModel("value50");
-		
-		doTest();
+		printHeader();		
+		doDemo();
 		closeResources();
 
 	}
@@ -48,9 +45,12 @@ public class MainClass {
 		System.out.println("PROJECT MY-ORM : " + VERSION);
 	}
 
-	private static void doTest() {
-//		myORM.createTable(Client.class);
-		System.out.println(myORM.сreateRecordInTable(CLIENT));
+	private static void doDemo() {
+		myORM.createTable(TestModel.class);
+//		System.out.println(myORM.сreateRecordInTable(CLIENT));
+
+//		myORM.deleteRecordInTableByPK(Client.class, 7);
+//		myORM.deleteTable(TestModel.class);
 //		myORM.testDeleteRecordFromDB(testModel2);
 	}
 
