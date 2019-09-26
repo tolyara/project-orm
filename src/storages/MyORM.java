@@ -73,70 +73,23 @@ public class MyORM implements DataStorage, AutoCloseable {
 		final String QUERY_DELETE_TABLE = "DROP TABLE ? RESTRICT;";
 		System.out.println(QUERY_DELETE_TABLE);
 
-<<<<<<< HEAD
-		
-=======
 		try (final PreparedStatement statement = this.connection.prepareStatement(QUERY_DELETE_TABLE)) {
 			statement.setString(1, TABLE_NAME);
 			statement.executeUpdate();
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
->>>>>>> refs/heads/connections
 
 	}
 
 	/*
 	 * Method creates some record in table
 	 */
-<<<<<<< HEAD
-	public void createRecordInTable(Object testModel) {
-=======
 	public int сreateRecordInTable(Object model) {
->>>>>>> refs/heads/connections
 
 		/* here we get name and PK of table, where we need to push record */
 		DBModel modelAnnotation = model.getClass().getAnnotation(DBModel.class);
 		final String TABLE_NAME = modelAnnotation.tableName().toLowerCase();
-<<<<<<< HEAD
-		String primaryKey = modelAnnotation.primaryKey();
-
-		String fieldName = "<null>";
-		String fieldValue = "<null>";
-		StringBuilder preparedColumns = new StringBuilder();
-		StringBuilder preparedValues = new StringBuilder();
-
-		for (Field parsedField : testModel.getClass().getDeclaredFields()) {
-			fieldName = parsedField.getName(); /* getting name of column we need to push record */
-			if (!fieldName.toLowerCase().equals(primaryKey)) { /* skip field that is PK */
-				try {
-					preparedColumns.append(fieldName.toLowerCase() + ", ");
-
-					parsedField.setAccessible(true);
-					/* getting value that we need to push */
-					fieldValue = ((String) parsedField.get(testModel)).trim();
-					preparedValues.append(fieldValue + ", ");
-
-				} catch (IllegalArgumentException | IllegalAccessException e) {
-					e.printStackTrace();
-				}
-			}
-		}
-
-		preparedColumns = new StringBuilder(preparedColumns.toString().trim());
-		preparedValues = new StringBuilder(preparedValues.toString().trim());
-		preparedColumns.delete(preparedColumns.toString().length() - 1, preparedColumns.toString().length()); // deleting
-																												// last
-																												// comma
-		preparedValues.delete(preparedValues.toString().length() - 1, preparedValues.toString().length()); // deleting
-																											// last
-																											// comma
-
-		final String QUERY_CREATE_ON_TABLE = "INSERT INTO " + TABLE_NAME + " (" + preparedColumns.toString() + ")"
-				+ " VALUES (" + preparedValues.toString() + ");";
-
-		try (final PreparedStatement statement = this.connection.prepareStatement(QUERY_CREATE_ON_TABLE)) {
-=======
 		String primaryKey = modelAnnotation.primaryKey().toLowerCase();
 		int addedRecordId = -1;
 		
@@ -145,7 +98,6 @@ public class MyORM implements DataStorage, AutoCloseable {
 		final String QUERY_CREATE_ON_TABLE = "INSERT INTO " + TABLE_NAME + " (" + preparedColumns + ")"
 				+ " VALUES (" + preparedValues + ");";
 		try (final PreparedStatement statement = this.connection.prepareStatement(QUERY_CREATE_ON_TABLE, Statement.RETURN_GENERATED_KEYS)) {			
->>>>>>> refs/heads/connections
 			statement.executeUpdate();
 			try (ResultSet generatedKeys = statement.getGeneratedKeys()) {
 				if (generatedKeys.next()) {
@@ -161,29 +113,15 @@ public class MyORM implements DataStorage, AutoCloseable {
 		return addedRecordId;
 	}
 
-	public void updateDataOnTestTable(String tableName, int elementId, String newElementName) {
-		final String QUERY_UPDATE_ON_TABLE = "UPDATE " + tableName
-				+ " AS test SET test_field = ? WHERE test.test_id = ?;";
-		try (final PreparedStatement statement = this.connection.prepareStatement(QUERY_UPDATE_ON_TABLE)) {
-			statement.setString(1, newElementName.trim());
-			statement.setInt(2, elementId);
-			statement.executeUpdate();
-		} catch (SQLException e) {
-			e.printStackTrace();
-		}
+	public void updateData(String tableName, int elementId, String newElementName) {
+		
 	}
 
 	/*
 	 * Method deletes record in table by value of field that is primary key
 	 */
-<<<<<<< HEAD
-	public void deleteRecordFromTable(Object model) {
-=======
 	public void deleteRecordInTableByPK(Class entity, int keyValue) {
->>>>>>> refs/heads/connections
 
-<<<<<<< HEAD
-=======
 		/* here we get name of table, where we need to delete record */
 		DBModel modelAnnotation = (DBModel) entity.getAnnotation(DBModel.class);
 		final String TABLE_NAME = modelAnnotation.tableName();
@@ -200,13 +138,7 @@ public class MyORM implements DataStorage, AutoCloseable {
 	}
 
 	public void deleteAllData(String tableName) {
-		try (final PreparedStatement statement = this.connection.prepareStatement(QUERY_DELETE)) {
-			statement.setString(1, tableName.trim());
-			statement.executeUpdate();
-		} catch (SQLException e) {
-			e.printStackTrace();
-		}
->>>>>>> refs/heads/connections
+		
 	}
 
 	@Override
@@ -227,11 +159,7 @@ public class MyORM implements DataStorage, AutoCloseable {
 		primaryKey = modelAnnotation.primaryKey();
 
 		StringBuilder SQLRequest = new StringBuilder(
-<<<<<<< HEAD
-				"CREATE TABLE " + entity.getSimpleName().toLowerCase() + " (" + primaryKey + " serial, ");
-=======
 				"CREATE TABLE " + modelAnnotation.tableName().toLowerCase() + " (" + primaryKey + " serial, ");
->>>>>>> refs/heads/connections
 
 		for (String name : fields) {
 			if (!name.equals(primaryKey)) {
