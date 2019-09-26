@@ -16,8 +16,9 @@ public class MainClass {
 	private static final MyORM myORMwithConnectionPool = new MyORM();
 	
 	private static final Client CLIENT = new Client("Petrov", "Petr", "false");
+	private static final Client CLIENT2 = new Client(4, "Sidorova", "Lena", "true");
 
-	private static final int ITERATION_NUMBER = 1_000;
+	private static final int ITERATION_NUMBER = 10;
 
 	public static void main(String[] args) throws IOException {
 
@@ -40,10 +41,11 @@ public class MainClass {
 	}
 
 	private static void doDemo() {
-		myORM.createTable(Client.class);
-		int id = myORM.createRecordInTable(CLIENT);
-		myORM.deleteRecordInTableByPK(Client.class, id);
-		checkProcuctivity();
+//		myORM.createTable(Client.class);
+//		int id = myORM.createRecordInTable(CLIENT);
+		myORM.updateRecordInTable(CLIENT2);
+//		myORM.deleteRecordInTableByPK(Client.class, 9);
+//		checkProcuctivity();
 	}
 
 	/*

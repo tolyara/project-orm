@@ -16,7 +16,7 @@ public class Client {
 	private String name;
 	
 	@DBField (fieldName = "isgirl")
-	private String isGirl;
+	private String isGirl = "<null>";
 
 	public Client() {
 

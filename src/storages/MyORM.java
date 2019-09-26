@@ -1,5 +1,6 @@
 package storages;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.*;
 import java.sql.*;
 import java.util.*;
@@ -62,10 +63,10 @@ public class MyORM implements AutoCloseable {
 	}
 
 	public void deleteTable(Class entity) {
-		
+
 		DBModel modelAnnotation = (DBModel) entity.getAnnotation(DBModel.class);
 		final String TABLE_NAME = modelAnnotation.tableName();
-		
+
 		final String QUERY_DELETE_TABLE = "DROP TABLE " + TABLE_NAME + " RESTRICT;";
 
 		try (final PreparedStatement statement = this.connection.prepareStatement(QUERY_DELETE_TABLE)) {
@@ -86,29 +87,95 @@ public class MyORM implements AutoCloseable {
 		final String TABLE_NAME = modelAnnotation.tableName().toLowerCase();
 		String primaryKey = modelAnnotation.primaryKey().toLowerCase();
 		int addedRecordId = -1;
-		
+
 		final String preparedColumns = getPreparedColumns(model, primaryKey);
 		final String preparedValues = getPreparedValues(model, primaryKey);
-		final String QUERY_CREATE_ON_TABLE = "INSERT INTO " + TABLE_NAME + " (" + preparedColumns + ")"
-				+ " VALUES (" + preparedValues + ");";
-		try (final PreparedStatement statement = this.connection.prepareStatement(QUERY_CREATE_ON_TABLE, Statement.RETURN_GENERATED_KEYS)) {			
+		final String QUERY_CREATE_ON_TABLE = "INSERT INTO " + TABLE_NAME + " (" + preparedColumns + ")" + " VALUES ("
+				+ preparedValues + ");";
+		try (final PreparedStatement statement = this.connection.prepareStatement(QUERY_CREATE_ON_TABLE,
+				Statement.RETURN_GENERATED_KEYS)) {
 			statement.executeUpdate();
 			try (ResultSet generatedKeys = statement.getGeneratedKeys()) {
 				if (generatedKeys.next()) {
-				addedRecordId = generatedKeys.getInt(1);
+					addedRecordId = generatedKeys.getInt(1);
 				} else {
 					throw new IllegalStateException("Could not return PK of added client!");
 				}
-			}			
+			}
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
-		
+
 		return addedRecordId;
 	}
 
-	public void updateData(String tableName, int elementId, String newElementName) {
-		
+	public HashMap<Integer, Object> readAllDataFromTable(Class entity) {
+
+		final Map<Integer, Object> products = new TreeMap<>();
+
+		DBModel modelAnnotation = (DBModel) entity.getAnnotation(DBModel.class);
+		final String TABLE_NAME = modelAnnotation.tableName();
+
+		final String QUERY_READ_FROM_TABLE = "SELECT * FROM " + TABLE_NAME;
+
+		try (final PreparedStatement statement = this.connection.prepareStatement(QUERY_READ_FROM_TABLE)) {
+			statement.executeUpdate();
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return null;
+
+	}
+
+	public void updateRecordInTable(Object model) {
+
+		DBModel modelAnnotation = model.getClass().getAnnotation(DBModel.class);
+		final String TABLE_NAME = modelAnnotation.tableName();
+		String primaryKey = modelAnnotation.primaryKey();
+
+		String columnName = "<null>";
+		String fieldValue = "<null>";
+		StringBuilder preparedData = new StringBuilder();
+		int keyValue = -1;
+
+		for (Field parsedField : model.getClass().getDeclaredFields()) {
+//			Annotation[] fieldAnnotation = parsedField.getClass().getAnnotations();
+//			for (Annotation anno : fieldAnnotation) {
+//				if (anno instanceof DBField) {
+//			columnName = ((DBField) anno).fieldName();
+//				}
+//			}
+			columnName = parsedField.getName();
+			if (!columnName.toLowerCase().equals(primaryKey)) { /* skip field that is PK */
+				try {
+					parsedField.setAccessible(true);
+					fieldValue = ((String) parsedField.get(model));
+					preparedData.append(columnName + " = '" + fieldValue + "'" + ", ");
+				} catch (IllegalArgumentException | IllegalAccessException e) {
+					e.printStackTrace();
+				}
+			} else {
+				try {
+					parsedField.setAccessible(true);
+					keyValue = ((Integer) parsedField.get(model));
+				} catch (IllegalArgumentException | IllegalAccessException e) {
+					e.printStackTrace();
+				}
+			}
+		}
+		preparedData = new StringBuilder(preparedData.toString().trim());
+		/* deleting last comma */
+		preparedData.delete(preparedData.toString().length() - 1, preparedData.toString().length());
+
+		final String QUERY_UPDATE_ON_TABLE = "UPDATE " + TABLE_NAME + " SET " + preparedData + " WHERE " + primaryKey
+				+ " = ?;";
+		System.out.println(QUERY_UPDATE_ON_TABLE);
+		try (final PreparedStatement statement = this.connection.prepareStatement(QUERY_UPDATE_ON_TABLE)) {
+			statement.setInt(1, keyValue);
+			 statement.executeUpdate();
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
 	}
 
 	/*
@@ -132,7 +199,7 @@ public class MyORM implements AutoCloseable {
 	}
 
 	public void deleteAllData(String tableName) {
-		
+
 	}
 
 	@Override
@@ -175,10 +242,10 @@ public class MyORM implements AutoCloseable {
 		}
 		return nameFields;
 	}
-	
+
 	private String getPreparedColumns(Object model, String primaryKey) {
-		
-		String fieldName = "<null>"; 
+
+		String fieldName = "<null>";
 		StringBuilder preparedColumns = new StringBuilder();
 		String columns = "<null>";
 
@@ -194,14 +261,14 @@ public class MyORM implements AutoCloseable {
 		}
 		preparedColumns = new StringBuilder(preparedColumns.toString().trim());
 		/* deleting last comma */
-		preparedColumns.delete(preparedColumns.toString().length() - 1, preparedColumns.toString().length()); 
+		preparedColumns.delete(preparedColumns.toString().length() - 1, preparedColumns.toString().length());
 		columns = preparedColumns.toString();
-		return columns;		
+		return columns;
 	}
-	
+
 	private String getPreparedValues(Object model, String primaryKey) {
-		
-		String fieldName = "<null>"; 
+
+		String fieldName = "<null>";
 		String fieldValue = "<null>";
 		StringBuilder preparedValues = new StringBuilder();
 		String values = "<null>";
@@ -221,9 +288,9 @@ public class MyORM implements AutoCloseable {
 		}
 		preparedValues = new StringBuilder(preparedValues.toString().trim());
 		/* deleting last comma */
-		preparedValues.delete(preparedValues.toString().length() - 1, preparedValues.toString().length()); 
+		preparedValues.delete(preparedValues.toString().length() - 1, preparedValues.toString().length());
 		values = preparedValues.toString();
-		return values;		
+		return values;
 	}
 
 }
