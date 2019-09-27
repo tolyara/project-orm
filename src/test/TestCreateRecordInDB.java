@@ -25,7 +25,7 @@ public class TestCreateRecordInDB {
 	}
 
 	@Test
-	public void testCreate() { 
+	public void testCreate() {   
 		int id = myORM.createRecordInTable(worker);		
 		Worker workerFromDB = new Worker();
 		workerFromDB = (Worker) myORM.getRecordById(Worker.class, id);
