@@ -309,4 +309,8 @@ public class MyORM implements AutoCloseable {
 		return values;
 	}
 
+	public Object getRecordById(Class entity, int id) {
+		return null;		
+	}
+
 }
