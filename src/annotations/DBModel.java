@@ -10,7 +10,6 @@ import java.lang.annotation.*;
 public @interface DBModel {
 	
 	String tableName();
-
 	String primaryKey();
 	
 }

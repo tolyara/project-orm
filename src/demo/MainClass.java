@@ -1,6 +1,8 @@
 package demo;
 
 import java.io.IOException;
+import java.lang.reflect.Field;
+import java.util.List;
 
 import models.Client;
 import storages.MyORM;
@@ -12,17 +14,17 @@ public class MainClass {
 
 	public static final String POSTGRESQL_DRIVER = "org.postgresql.Driver";
 	private static final String VERSION = "beta version";
-	private static final MyORM myORM = new MyORM (POSTGRESQL_DRIVER);
+	private static final MyORM myORM = new MyORM(POSTGRESQL_DRIVER);
 	private static final MyORM myORMwithConnectionPool = new MyORM();
-	
+
 	private static final Client CLIENT = new Client("Petrov", "Petr", "false");
-	private static final Client CLIENT2 = new Client(4, "Sidorova", "Lena", "true");
+	private static final Client CLIENT2 = new Client(6, "333", "456", "true");
 
 	private static final int ITERATION_NUMBER = 10;
 
-	public static void main(String[] args) throws IOException {
+	public static void main(String[] args) throws IOException, InstantiationException, IllegalAccessException {
 
-		printHeader();		
+		printHeader();
 		doDemo();
 		closeResources();
 
@@ -40,12 +42,25 @@ public class MainClass {
 		System.out.println("PROJECT MY-ORM : " + VERSION);
 	}
 
-	private static void doDemo() {
-//		myORM.createTable(Client.class);
-//		int id = myORM.createRecordInTable(CLIENT);
-		myORM.updateRecordInTable(CLIENT2);
-//		myORM.deleteRecordInTableByPK(Client.class, 9);
-//		checkProcuctivity();
+	private static void doDemo() throws InstantiationException, IllegalAccessException {
+		// myORM.createTable(Client.class);
+		// int id = myORM.createRecordInTable(CLIENT);
+
+		printReceivedObjects(myORM.readAllDataFromTable(Client.class));
+		// myORM.updateRecordInTable(CLIENT2);
+		// myORM.deleteRecordInTableByPK(Client.class, 9);
+		// checkProcuctivity();
+	}
+
+	private static void printReceivedObjects(List<Object> objects) throws IllegalArgumentException, IllegalAccessException {
+		for (Object o : objects) {
+			for (Field field : o.getClass().getDeclaredFields()) {
+				field.setAccessible(true);
+				System.out.printf("%14s", field.get(o) );
+			}
+			System.out.println();
+		}
+
 	}
 
 	/*

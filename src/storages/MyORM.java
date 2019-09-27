@@ -109,21 +109,44 @@ public class MyORM implements AutoCloseable {
 		return addedRecordId;
 	}
 
-	public HashMap<Integer, Object> readAllDataFromTable(Class entity) {
+	public List<Object> readAllDataFromTable(Class entity) throws InstantiationException, IllegalAccessException {
 
-		final Map<Integer, Object> products = new TreeMap<>();
+		List<Object> objects = new ArrayList<Object>();
 
 		DBModel modelAnnotation = (DBModel) entity.getAnnotation(DBModel.class);
 		final String TABLE_NAME = modelAnnotation.tableName();
+		String primaryKey = modelAnnotation.primaryKey();
 
-		final String QUERY_READ_FROM_TABLE = "SELECT * FROM " + TABLE_NAME;
+		final String QUERY_READ_FROM_TABLE = "SELECT * FROM " + TABLE_NAME + " ORDER BY " + primaryKey + ";";
 
-		try (final PreparedStatement statement = this.connection.prepareStatement(QUERY_READ_FROM_TABLE)) {
-			statement.executeUpdate();
+		try (final Statement statement = this.connection.createStatement();
+				final ResultSet rs = statement.executeQuery(QUERY_READ_FROM_TABLE)) {
+			while (rs.next()) {
+				Object object = entity.newInstance();
+				for (Field parsedField : entity.getDeclaredFields()) {
+					if (parsedField.getName().equals(primaryKey)) {
+						parsedField.setAccessible(true);
+						try {
+							parsedField.set(object, rs.getInt(primaryKey));
+						} catch (IllegalArgumentException | IllegalAccessException e) {
+							e.printStackTrace();
+						}
+					} else {
+						parsedField.setAccessible(true);
+						try {
+							parsedField.set(object, rs.getString(parsedField.getName()));
+						} catch (IllegalArgumentException | IllegalAccessException e) {
+							e.printStackTrace();
+						}
+					}
+				}
+				objects.add(object);
+			}
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
-		return null;
+		
+		return objects;
 
 	}
 
@@ -139,12 +162,6 @@ public class MyORM implements AutoCloseable {
 		int keyValue = -1;
 
 		for (Field parsedField : model.getClass().getDeclaredFields()) {
-//			Annotation[] fieldAnnotation = parsedField.getClass().getAnnotations();
-//			for (Annotation anno : fieldAnnotation) {
-//				if (anno instanceof DBField) {
-//			columnName = ((DBField) anno).fieldName();
-//				}
-//			}
 			columnName = parsedField.getName();
 			if (!columnName.toLowerCase().equals(primaryKey)) { /* skip field that is PK */
 				try {
@@ -169,10 +186,9 @@ public class MyORM implements AutoCloseable {
 
 		final String QUERY_UPDATE_ON_TABLE = "UPDATE " + TABLE_NAME + " SET " + preparedData + " WHERE " + primaryKey
 				+ " = ?;";
-		System.out.println(QUERY_UPDATE_ON_TABLE);
 		try (final PreparedStatement statement = this.connection.prepareStatement(QUERY_UPDATE_ON_TABLE)) {
 			statement.setInt(1, keyValue);
-			 statement.executeUpdate();
+			statement.executeUpdate();
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
