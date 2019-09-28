@@ -1,11 +1,11 @@
 package demo;
 
-import java.io.IOException;
 import java.lang.reflect.Field;
 import java.util.List;
 
-import models.Client;
-import models.Worker;
+import demo.models.Client;
+import demo.models.TestModel;
+import demo.models.Worker;
 import storages.MyORM;
 import transactions.Transaction;
 
@@ -49,6 +49,8 @@ public class MainClass {
 //		myORM.deleteTable(Worker.class);
 		printReceivedObjects(myORM.readAllDataFromTable(Worker.class));
 
+		myORM.createTable(Client.class);
+		myORM.createTable(TestModel.class);
 	}
 
 	private static void printReceivedObjects(List<Object> objects)

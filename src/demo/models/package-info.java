@@ -5,4 +5,4 @@
  * @author Anatoliy Melchenko
  *
  */
-package models;
+package demo.models;

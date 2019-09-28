@@ -1,18 +1,17 @@
-package models;
+package demo.models;
 
-import annotations.DBField;
-import annotations.DBModel;
+import annotations.Field;
+import annotations.Model;
 
-@DBModel(tableName = "worker", primaryKey = "number")
+@Model(tableName = "worker", primaryKey = "number")
 public class Worker {
 	
-	@DBField (fieldName = "number", isAutoIncrement = true)
 	private int number;
 
-	@DBField (fieldName = "surname")
+	@Field(fieldName = "surname")
 	private String surname;
 	
-	@DBField (fieldName = "address")
+	@Field(fieldName = "address")
 	private String address;
 
 	public Worker(int number, String surname, String address) {

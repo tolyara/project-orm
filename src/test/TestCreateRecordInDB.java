@@ -2,16 +2,12 @@ package test;
 
 import static org.junit.Assert.*;
 
-import java.io.IOException;
-import java.sql.*;
-
 import org.junit.Before;
 import org.junit.Test;
 
 import demo.MainClass;
-import models.Worker;
+import demo.models.Worker;
 import storages.MyORM;
-import annotations.*;
 
 public class TestCreateRecordInDB {
 	
@@ -28,7 +24,7 @@ public class TestCreateRecordInDB {
 	public void testCreate() {   
 		int id = myORM.createRecordInTable(worker);		
 		Worker workerFromDB = new Worker();
-		workerFromDB = (Worker) myORM.getRecordById(Worker.class, id);
+//		workerFromDB = (Worker) myORM.getRecordById(Worker.class, id);
 		assertEquals(worker.getNumber(), workerFromDB.getNumber());
 		assertEquals(worker.getAddress(), workerFromDB.getAddress());
 	}

@@ -1,21 +1,20 @@
-package models;
+package demo.models;
 
-import annotations.DBField;
-import annotations.DBModel;
+import annotations.Field;
+import annotations.Model;
 
-@DBModel(tableName = "Client", primaryKey = "id")
+@Model(tableName = "client", primaryKey = "id")
 public class Client {
 	
-	@DBField (fieldName = "id", isAutoIncrement = true)
 	private int id;
 
-	@DBField (fieldName = "surname")
+	@Field(fieldName = "surname")
 	private String surname;
 	
-	@DBField (fieldName = "name")
+	@Field(fieldName = "name")
 	private String name;
 	
-	@DBField (fieldName = "isgirl")
+	@Field(fieldName = "isgirl")
 	private String isGirl = "<null>";
 
 	public Client() {

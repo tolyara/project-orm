@@ -7,7 +7,7 @@ import java.lang.annotation.*;
  */
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
-public @interface DBModel {
+public @interface Model {
 	
 	String tableName();
 	String primaryKey();
