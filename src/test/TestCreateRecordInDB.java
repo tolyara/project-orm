@@ -7,7 +7,9 @@ import org.junit.Test;
 
 import demo.MainClass;
 import demo.models.Worker;
+import storages.Entity;
 import storages.MyORM;
+import storages.Table;
 
 public class TestCreateRecordInDB {
 	
@@ -22,7 +24,7 @@ public class TestCreateRecordInDB {
 
 	@Test
 	public void testCreate() {   
-		int id = myORM.createRecordInTable(worker);		
+		int id = Table.createRecordInTable(new Entity(worker));
 		Worker workerFromDB = new Worker();
 //		workerFromDB = (Worker) myORM.getRecordById(Worker.class, id);
 		assertEquals(worker.getNumber(), workerFromDB.getNumber());
