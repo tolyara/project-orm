@@ -2,6 +2,7 @@ package storages;
 
 import SQL.EntityDAO;
 import SQL.SQLBuilder;
+import annotations.Field;
 
 import java.sql.*;
 import java.util.List;
@@ -23,6 +24,12 @@ public class Table {
             try (Statement statement = PGConnectionPool.getInstance().getConnection().createStatement()) {
                 statement.executeUpdate(SQLBuilder.buildCreateTableRequest(entity));
 
+                List<java.lang.reflect.Field> foreignKeyFields = entity.getForeignKeyFields();
+                if(foreignKeyFields.size() > 0) {
+                    for (java.lang.reflect.Field field: foreignKeyFields){
+                        statement.executeUpdate(SQLBuilder.buildCreateForeignKeyRequest(entity, field));
+                    }
+                }
                 flag = true;
 
             } catch (SQLException e) {

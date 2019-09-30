@@ -48,14 +48,14 @@ public class MainClass {
 	}
 
 	private static void doDemo() throws Exception {
-		 Table.createTableFromEntity(new Entity(Worker.class));
+//		 Table.createTableFromEntity(new Entity(Worker.class));
 //		myORM.deleteTable(Worker.class);
-		printReceivedObjects(Table.readAllDataFromTable(new Entity(Worker.class)));
-		Table.createRecordInTable(new Entity(new Worker(12, "test", "ddd")));
-		Table.createTableFromEntity(new Entity(Client.class));
+//		printReceivedObjects(Table.readAllDataFromTable(new Entity(Worker.class)));
+//		Table.createRecordInTable(new Entity(new Worker(12, "test", "ddd")));
+//		Table.createTableFromEntity(new Entity(Client.class));
 		Table.createTableFromEntity(new Entity(TestModel.class));
-		Table.deleteEntityTable("test");
-		EntityDAO.getInstance().updateEntity(new Entity(new Worker(12, "super_test", "ddww")));
+//		Table.deleteEntityTable("test");
+//		EntityDAO.getInstance().updateEntity(new Entity(new Worker(12, "super_test", "ddww")));
 	}
 
 	private static void printReceivedObjects(List<Entity> objects)

@@ -1,7 +1,9 @@
 package demo.models;
 
 import annotations.Field;
+import annotations.ForeignKey;
 import annotations.Model;
+import storages.Actions;
 
 @Model(tableName = "client", primaryKey = "id")
 public class Client {
@@ -16,6 +18,10 @@ public class Client {
 	
 	@Field(fieldName = "isgirl")
 	private String isGirl = "<null>";
+
+	@Field(fieldName = "test_id")
+	@ForeignKey(entity = "TestModel", column = "id")
+	private int testId;
 
 	public Client() {
 

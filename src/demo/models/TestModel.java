@@ -25,7 +25,7 @@ public class TestModel {
 	private int age;
 
 	@Field(fieldName = "client_id")
-	@ForeignKey(table = "client", column = "id", onUpdate = Actions.CASCADE, onDelete = Actions.CASCADE)
+	@ForeignKey(entity = "Client", column = "id")
 	private int clientId;
 
 	public TestModel() {
