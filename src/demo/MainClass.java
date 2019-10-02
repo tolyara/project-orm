@@ -3,10 +3,13 @@ package demo;
 import java.lang.reflect.Field;
 import java.util.List;
 
+import SQL.EntityDAO;
 import demo.models.Client;
 import demo.models.TestModel;
 import demo.models.Worker;
+import storages.Entity;
 import storages.MyORM;
+import storages.Table;
 import transactions.Transaction;
 
 /**
@@ -37,7 +40,7 @@ public class MainClass {
 	 */
 	private static void closeResources() {
 		myORM.close();
-//		myORMwithConnectionPool.close();
+		myORMwithConnectionPool.close();
 	}
 
 	private static void printHeader() {
@@ -46,14 +49,21 @@ public class MainClass {
 
 	private static void doDemo() throws Exception {
 //		 myORM.createTable(Worker.class); 
+		 Table.createTableFromEntity(new Entity(Worker.class));
 //		myORM.deleteTable(Worker.class);
 //		printReceivedObjects(myORM.readAllDataFromTable(Worker.class));
 
 //		myORM.createTable(Client.class);
-		myORM.createTable(TestModel.class);
+//		myORM.createTable(TestModel.class);
+		printReceivedObjects(Table.readAllDataFromTable(new Entity(Worker.class)));
+		Table.createRecordInTable(new Entity(new Worker(12, "test", "ddd")));
+		Table.createTableFromEntity(new Entity(Client.class));
+		Table.createTableFromEntity(new Entity(TestModel.class));
+		Table.deleteEntityTable("test");
+		EntityDAO.getInstance().updateEntity(new Entity(new Worker(12, "super_test", "ddww")));
 	}
 
-	private static void printReceivedObjects(List<Object> objects)
+	private static void printReceivedObjects(List<Entity> objects)
 			throws IllegalArgumentException, IllegalAccessException {
 		for (Object o : objects) {
 			for (Field field : o.getClass().getDeclaredFields()) {
@@ -67,9 +77,9 @@ public class MainClass {
 	private static void tryTransaction() throws Exception {
 		Transaction tx = new Transaction();
 		tx.openConnection();
-		myORM.createRecordInTable(new Worker(-1, "Nut", "Nut"));
+		Table.createRecordInTable(new Entity(new Worker(-1, "Nut", "Nut")));
 //		myORM.close();
-		myORM.updateRecordInTable(new Worker(2, "456", "123"));
+		//myORM.updateRecordInTable(new Worker(2, "456", "123"));
 		try {
 			tx.commit();
 		} catch (Throwable e) {
@@ -85,14 +95,14 @@ public class MainClass {
 
 		long start = System.currentTimeMillis();
 		for (int i = 0; i < ITERATION_NUMBER; i++) {
-			myORM.createRecordInTable(CLIENT);
+			Table.createRecordInTable(new Entity(CLIENT));
 		}
 		long finish = System.currentTimeMillis();
 		System.out.println("Finished in : " + (finish - start) + " millis");
 
 		start = System.currentTimeMillis();
 		for (int i = 0; i < ITERATION_NUMBER; i++) {
-			myORMwithConnectionPool.createRecordInTable(CLIENT);
+			Table.createRecordInTable(new Entity(CLIENT));
 		}
 		finish = System.currentTimeMillis();
 		System.out.println("Finished in : " + (finish - start) + " millis");
