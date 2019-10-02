@@ -1,11 +1,12 @@
 package storages;
 
-import annotations.Field;
+import annotations.Column;
 import annotations.ForeignKey;
 import annotations.Model;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -43,9 +44,9 @@ public class Entity implements Model {
 
     public List<String> getFieldsNames(){
         List<String> nameFields = new ArrayList<>();
-        for (java.lang.reflect.Field field : entityClass.getDeclaredFields()) {
-            if (field.isAnnotationPresent(Field.class)) {
-                nameFields.add(field.getAnnotation(Field.class).fieldName());
+        for (Field field : entityClass.getDeclaredFields()) {
+            if (field.isAnnotationPresent(Column.class)) {
+                nameFields.add(field.getAnnotation(Column.class).fieldName());
             }
         }
         return nameFields;
@@ -53,17 +54,17 @@ public class Entity implements Model {
 
     public List<String> getFieldTypes() {
         List<String> typesFields = new ArrayList<>();
-        for (java.lang.reflect.Field field : entityClass.getDeclaredFields()) {
-            if (field.isAnnotationPresent(Field.class)) {
+        for (Field field : entityClass.getDeclaredFields()) {
+            if (field.isAnnotationPresent(Column.class)) {
                 typesFields.add(field.getType().getSimpleName());
             }
         }
         return typesFields;
     }
 
-    public List<java.lang.reflect.Field> getForeignKeyFields() {
-        List<java.lang.reflect.Field> foreignKeys = new ArrayList<>();
-        for (java.lang.reflect.Field field : entityClass.getDeclaredFields()) {
+    public List<Field> getForeignKeyFields() {
+        List<Field> foreignKeys = new ArrayList<>();
+        for (Field field : entityClass.getDeclaredFields()) {
             if (field.isAnnotationPresent(ForeignKey.class)) {
                 foreignKeys.add(field);
             }
@@ -73,9 +74,9 @@ public class Entity implements Model {
 
     public int getPrimaryKeyValue(){
         int value = 0;
-        for (java.lang.reflect.Field column : getEntityClass().getDeclaredFields()) {
-
-            if (column.getName().toLowerCase().equals(primaryKey())) {
+        for (Field column : getEntityClass().getDeclaredFields()) {
+        	final String COLUMN_NAME = column.getAnnotation(Column.class).fieldName();
+            if (COLUMN_NAME.toLowerCase().equals(primaryKey())) {
                 try {
                     column.setAccessible(true);
                     value = ((Integer) column.get(getEntityObject()));
@@ -92,12 +93,11 @@ public class Entity implements Model {
     public String getParsedFieldsLine(){
        StringBuilder parsedFields = new StringBuilder();
 
-
-        for (java.lang.reflect.Field parsedField : entityClass.getDeclaredFields()) {
-
-            if (!parsedField.getName().toLowerCase().equals(primaryKey())) { /* skip field that is PK */
+        for (Field parsedField : entityClass.getDeclaredFields()) {
+        	final String COLUMN_NAME = parsedField.getAnnotation(Column.class).fieldName();
+            if (!COLUMN_NAME.toLowerCase().equals(primaryKey())) { /* skip field that is PK */
                 try {
-                    parsedFields.append(parsedField.getName().toLowerCase() + ", ");
+                    parsedFields.append(COLUMN_NAME.toLowerCase() + ", ");
                 } catch (IllegalArgumentException e) {
                     e.printStackTrace();
                 }
@@ -113,9 +113,9 @@ public class Entity implements Model {
 
         StringBuilder preparedValues = new StringBuilder();
 
-
-        for (java.lang.reflect.Field parsedField : entityClass.getDeclaredFields()) {
-            if (!parsedField.getName().toLowerCase().equals(primaryKey())) { /* skip field that is PK */
+        for (Field parsedField : entityClass.getDeclaredFields()) {
+        	final String COLUMN_NAME = parsedField.getAnnotation(Column.class).fieldName();
+            if (!COLUMN_NAME.toLowerCase().equals(primaryKey())) { /* skip field that is PK */
                 try {
                     parsedField.setAccessible(true);
                     /* getting value that we need to push */

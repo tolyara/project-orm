@@ -1,6 +1,6 @@
 package demo.models;
 
-import annotations.Field;
+import annotations.Column;
 import annotations.Model;
 
 @Model(tableName = "client", primaryKey = "id")
@@ -8,14 +8,14 @@ public class Client {
 	
 	private int id;
 
-	@Field(fieldName = "surname")
+	@Column(fieldName = "surname")
 	private String surname;
 	
-	@Field(fieldName = "name")
+	@Column(fieldName = "name")
 	private String name;
 	
-	@Field(fieldName = "isgirl")
-	private String isGirl = "<null>";
+	@Column(fieldName = "isgirl")
+	private String isGirl;
 
 	public Client() {
 

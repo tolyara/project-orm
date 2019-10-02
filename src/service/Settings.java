@@ -11,10 +11,11 @@ import java.util.Properties;
 public class Settings {
 	
 	private final Properties properties = new Properties();
+	private static final String PROPERTIES_PATH_1 = "./resources/orm.properties";	
 
-    private Settings() {
+    private Settings() {  
         try {
-            properties.load(new FileInputStream("C:\\Users\\Дмитрий\\IdeaProjects\\ProjectORM\\out\\production\\ProjectORM\\resources\\orm.properties"));
+            properties.load(new FileInputStream(this.getClass().getClassLoader().getResource(PROPERTIES_PATH_1).getFile()));
         } catch (IOException e) {
             e.printStackTrace();
         }

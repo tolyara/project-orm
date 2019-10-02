@@ -8,7 +8,7 @@ import demo.models.Client;
 import demo.models.TestModel;
 import demo.models.Worker;
 import storages.Entity;
-import storages.MyORM;
+import storages.MyConnection;
 import storages.Table;
 import transactions.Transaction;
 
@@ -19,8 +19,8 @@ public class MainClass {
 
 	public static final String POSTGRESQL_DRIVER = "org.postgresql.Driver";
 	private static final String VERSION = "beta version";
-	public static final MyORM myORM = new MyORM(POSTGRESQL_DRIVER);
-	private static final MyORM myORMwithConnectionPool = new MyORM();
+	public static final MyConnection connection = new MyConnection(POSTGRESQL_DRIVER);
+	private static final MyConnection connectionViaConnectionPool = new MyConnection();
 
 	private static final Client CLIENT = new Client("Ivanov", "Ivan", "false");
 	private static final Client CLIENT2 = new Client(1, "333", "456", "true");
@@ -39,8 +39,8 @@ public class MainClass {
 	 * Method is needed for closing ORM objects after use
 	 */
 	private static void closeResources() {
-		myORM.close();
-		myORMwithConnectionPool.close();
+		connection.close();
+		connectionViaConnectionPool.close();
 	}
 
 	private static void printHeader() {
@@ -48,29 +48,30 @@ public class MainClass {
 	}
 
 	private static void doDemo() throws Exception {
-//		 myORM.createTable(Worker.class); 
-		 Table.createTableFromEntity(new Entity(Worker.class));
-//		myORM.deleteTable(Worker.class);
-//		printReceivedObjects(myORM.readAllDataFromTable(Worker.class));
+		// Table.createTableFromEntity(new Entity(Worker.class));
+		printReceivedObjects(EntityDAO.getInstance().readAllRecordsOrderedByPK(new Entity(Worker.class)));
+//		EntityDAO.getInstance().createRecordInTable(new Entity(new Worker(12, "test2", "ddd2")));		
+//		Entity en = EntityDAO.getInstance().selectEntityById(new Entity(Worker.class), 6);
+//		System.out.println(en.getEntityObject().toString());
 
-//		myORM.createTable(Client.class);
-//		myORM.createTable(TestModel.class);
-		printReceivedObjects(Table.readAllDataFromTable(new Entity(Worker.class)));
-		Table.createRecordInTable(new Entity(new Worker(12, "test", "ddd")));
-		Table.createTableFromEntity(new Entity(Client.class));
-		Table.createTableFromEntity(new Entity(TestModel.class));
-		Table.deleteEntityTable("test");
-		EntityDAO.getInstance().updateEntity(new Entity(new Worker(12, "super_test", "ddww")));
+		// Table.createRecordInTable(new Entity(new Worker(12, "test2", "ddd2")));
+		// Table.createTableFromEntity(new Entity(Client.class));
+		// Table.createTableFromEntity(new Entity(TestModel.class));
+		// Table.deleteEntityTable("worker");
+		// EntityDAO.getInstance().updateEntity(new Entity(new Worker(12, "super_test",
+		// "ddww")));
 	}
 
 	private static void printReceivedObjects(List<Entity> objects)
 			throws IllegalArgumentException, IllegalAccessException {
-		for (Object o : objects) {
-			for (Field field : o.getClass().getDeclaredFields()) {
-				field.setAccessible(true);
-				System.out.printf("%14s", field.get(o));
-			}
-			System.out.println();
+		for (Entity entity : objects) {
+			Worker o = (Worker) entity.getEntityObject();
+			System.out.println(o.getNumber());
+			// for (Field field : o.getClass().getDeclaredFields()) {
+			// field.setAccessible(true);
+			// System.out.printf("%14s", field.get(o));
+			// }
+			// System.out.println();
 		}
 	}
 
@@ -78,8 +79,8 @@ public class MainClass {
 		Transaction tx = new Transaction();
 		tx.openConnection();
 		Table.createRecordInTable(new Entity(new Worker(-1, "Nut", "Nut")));
-//		myORM.close();
-		//myORM.updateRecordInTable(new Worker(2, "456", "123"));
+		// myORM.close();
+		EntityDAO.getInstance().updateEntity(new Entity(new Worker(12, "super_test", "ddww")));
 		try {
 			tx.commit();
 		} catch (Throwable e) {

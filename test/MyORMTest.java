@@ -4,14 +4,14 @@ import demo.models.Client;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import storages.MyORM;
+import storages.MyConnection;
 import storages.Table;
 
 import java.sql.SQLException;
 
 public class MyORMTest {
 
-    private static MyORM orm;
+    private static MyConnection orm;
     /*
     @BeforeClass
     public static void createMyORM(){

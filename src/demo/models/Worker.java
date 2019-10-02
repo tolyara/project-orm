@@ -1,29 +1,30 @@
 package demo.models;
 
-import annotations.Field;
+import annotations.Column;
 import annotations.Model;
 
-@Model(tableName = "worker", primaryKey = "number")
+@Model(tableName = "worker", primaryKey = "worker_id")
 public class Worker {
 	
-	private int number;
+	@Column(fieldName = "worker_id")
+	private int id;
 
-	@Field(fieldName = "surname")
+	@Column(fieldName = "worker_surname")
 	private String surname;
 	
-	@Field(fieldName = "address")
+	@Column(fieldName = "worker_address")
 	private String address;
 
 	public Worker(int number, String surname, String address) {
 		super();
-		this.number = number;
+		this.id = number;
 		this.surname = surname;
 		this.address = address;
 	}
 
 	public Worker(int number) {
 		super();
-		this.number = number;
+		this.id = number;
 	}
 
 	public Worker() {
@@ -37,7 +38,7 @@ public class Worker {
 	}
 
 	public int getNumber() {
-		return number;
+		return id;
 	}
 
 	public String getSurname() {
@@ -47,5 +48,12 @@ public class Worker {
 	public String getAddress() {
 		return address;
 	}
+
+	@Override
+	public String toString() {
+		return "Worker [id=" + id + ", surname=" + surname + ", address=" + address + "]";
+	}
+	
+	
 
 }

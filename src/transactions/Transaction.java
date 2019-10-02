@@ -1,6 +1,6 @@
 package transactions;
 
-import storages.MyORM;
+import storages.MyConnection;
 
 
 import java.sql.Connection;
@@ -17,7 +17,7 @@ public class Transaction implements ITransaction {
     public Connection openConnection() {
         if (connection == null) {
             try {
-                connection = MainClass.myORM.getConnection();
+                connection = MainClass.connection.getConnection();
                 disableAutoCommit();
             } catch (Exception e) {
                 e.printStackTrace();

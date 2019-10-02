@@ -1,6 +1,8 @@
 package SQL;
 
-import annotations.Field;
+import java.lang.reflect.Field;
+
+import annotations.Column;
 import annotations.ForeignKey;
 import annotations.Model;
 import storages.DataTypes;
@@ -47,10 +49,10 @@ public final class SQLBuilder {
         StringBuilder foreignKeyFieldLine = new StringBuilder();
 
         if (entity.getForeignKeyFields().size() > 0) {
-            for (java.lang.reflect.Field field : entity.getForeignKeyFields()) {
+            for (Field field : entity.getForeignKeyFields()) {
                 foreignKeyFieldLine.append(", FOREIGN KEY ");
                 ForeignKey annotation = field.getAnnotation(ForeignKey.class);
-                foreignKeyFieldLine.append("(").append(field.getAnnotation(Field.class).fieldName()).append(")");
+                foreignKeyFieldLine.append("(").append(field.getAnnotation(Column.class).fieldName()).append(")");
                 foreignKeyFieldLine.append(" REFERENCES ").append(annotation.table()).append(" ");
                 foreignKeyFieldLine.append("(").append(annotation.column()).append(")");
                 foreignKeyFieldLine.append(" ON UPDATE ").append(annotation.onUpdate().toString()).append(" ");
@@ -64,8 +66,8 @@ public final class SQLBuilder {
         StringBuilder valuesLine = new StringBuilder();
         String columnName, fieldValue;
 
-        for (java.lang.reflect.Field parsedField : entity.getEntityClass().getDeclaredFields()) {
-            columnName = parsedField.getName();
+        for (Field parsedField : entity.getEntityClass().getDeclaredFields()) {
+            columnName = parsedField.getAnnotation(Column.class).fieldName();
             //todo refactor
             if (!columnName.toLowerCase().equals(entity.primaryKey())) { /* skip field that is PK */
                 try {
@@ -79,7 +81,5 @@ public final class SQLBuilder {
         }
         return valuesLine.toString().substring(0, valuesLine.length() - 2);
     }
-
-
 
 }

@@ -8,17 +8,17 @@ import org.junit.Test;
 import demo.MainClass;
 import demo.models.Worker;
 import storages.Entity;
-import storages.MyORM;
+import storages.MyConnection;
 import storages.Table;
 
 public class TestCreateRecordInDB {
 	
-	private MyORM myORM;
+	private MyConnection myORM;
 	private Worker worker;
 
 	@Before
 	public void setUp() throws Exception {
-		myORM = new MyORM(MainClass.POSTGRESQL_DRIVER);
+		myORM = new MyConnection(MainClass.POSTGRESQL_DRIVER);
 		worker = new Worker("qwerty", "zxc");
 	}
 
