@@ -37,7 +37,7 @@ public class MainClass {
 	 */
 	private static void closeResources() {
 		myORM.close();
-		myORMwithConnectionPool.close();
+//		myORMwithConnectionPool.close();
 	}
 
 	private static void printHeader() {
@@ -45,11 +45,11 @@ public class MainClass {
 	}
 
 	private static void doDemo() throws Exception {
-		 myORM.createTable(Worker.class); 
+//		 myORM.createTable(Worker.class); 
 //		myORM.deleteTable(Worker.class);
-		printReceivedObjects(myORM.readAllDataFromTable(Worker.class));
+//		printReceivedObjects(myORM.readAllDataFromTable(Worker.class));
 
-		myORM.createTable(Client.class);
+//		myORM.createTable(Client.class);
 		myORM.createTable(TestModel.class);
 	}
 
@@ -62,7 +62,6 @@ public class MainClass {
 			}
 			System.out.println();
 		}
-
 	}
 
 	private static void tryTransaction() throws Exception {
