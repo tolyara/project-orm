@@ -2,7 +2,6 @@ package storages;
 
 import SQL.EntityDAO;
 import SQL.SQLBuilder;
-import annotations.Field;
 
 import java.sql.*;
 import java.util.List;
@@ -69,7 +68,7 @@ public class Table {
 
         boolean flag = false;
         if(isTableExist(tableName)) {
-            final String QUERY_DELETE_TABLE = "DROP TABLE " + tableName +" RESTRICT;";
+            final String QUERY_DELETE_TABLE = "DROP TABLE " + tableName +" RESTRICT ;";
 
             try (final PreparedStatement statement = getConnection().prepareStatement(QUERY_DELETE_TABLE)) {
                 statement.executeUpdate();

@@ -20,7 +20,7 @@ public class Client {
 	private String isGirl = "<null>";
 
 	@Field(fieldName = "test_id")
-	@ForeignKey(entity = "TestModel", column = "id")
+	@ForeignKey(entity = "TestModel", column = "id", onDelete = Actions.CASCADE)
 	private int testId;
 
 	public Client() {

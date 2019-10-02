@@ -27,7 +27,6 @@ public final class SQLBuilder {
                 + " (" + primaryKey + " serial, ");
         SQLRequest.append(buildEntityFieldLine(entity));
         SQLRequest.append("PRIMARY KEY (").append(primaryKey).append(")");
-//        SQLRequest.append(buildEntityForeignKeyFieldLine(entity));
         SQLRequest.append(")");
         return SQLRequest.toString();
     }
