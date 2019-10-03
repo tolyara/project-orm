@@ -1,10 +1,13 @@
 package demo.models;
 
 import annotations.Column;
+import annotations.ManyToMany;
 import annotations.Model;
 import annotations.PrimaryKey;
 
-@Model(tableName = "worker", primaryKey = "worker_id")
+import java.util.List;
+
+@Model(tableName = "worker", primaryKey = "id")
 public class Worker {
 	
 
@@ -21,6 +24,9 @@ public class Worker {
 	private double salary;
 	
 	private int someFieldWithoutAnnotation;
+
+	@ManyToMany
+	private List<Client> clients;
 
 	public Worker(int id, String surname, boolean address) {
 		super();

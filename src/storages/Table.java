@@ -2,9 +2,12 @@ package storages;
 
 import SQL.EntityDAO;
 import SQL.SQLBuilder;
+import annotations.ManyToMany;
 
+import java.lang.reflect.Field;
 import java.sql.*;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /*
@@ -24,12 +27,15 @@ public class Table {
             try (Statement statement = PGConnectionPool.getInstance().getConnection().createStatement()) {
                 statement.executeUpdate(SQLBuilder.buildCreateTableRequest(entity));
 
-                List<java.lang.reflect.Field> foreignKeyFields = entity.getForeignKeyFields();
-                if(foreignKeyFields.size() > 0) {
-                    for (java.lang.reflect.Field field: foreignKeyFields){
+                List<Field> foreignKeyFields = entity.getForeignKeyFields();
+                if (foreignKeyFields.size() > 0) {
+                    for (Field field : foreignKeyFields) {
                         statement.executeUpdate(SQLBuilder.buildCreateForeignKeyRequest(entity, field));
                     }
                 }
+
+                createManyToManyDependency(entity, statement);
+
                 flag = true;
 
             } catch (SQLException e) {
@@ -68,8 +74,8 @@ public class Table {
     public static boolean deleteEntityTable(String tableName) {
 
         boolean flag = false;
-        if(isTableExist(tableName)) {
-            final String QUERY_DELETE_TABLE = "DROP TABLE " + tableName +" RESTRICT ;";
+        if (isTableExist(tableName)) {
+            final String QUERY_DELETE_TABLE = "DROP TABLE " + tableName + " RESTRICT ;";
 
             try (final PreparedStatement statement = getConnection().prepareStatement(QUERY_DELETE_TABLE)) {
                 statement.executeUpdate();
@@ -89,6 +95,43 @@ public class Table {
 //        objects = EntityDAO.getInstance().readAllRecordsOrderedByPK(entity);
         return objects;
 
+    }
+
+    private static void createManyToManyDependency(Entity firstEntity, Statement statement) {
+        List<Field> manyToManyFields = firstEntity.getManyToManyFields();
+
+        for (Field desiredField : manyToManyFields) {
+            try {
+                Entity secondEntity = getEntityFromFieldName(desiredField);
+                if (!isTableExist(secondEntity.tableName())) {
+                    createTableFromEntity(secondEntity);
+                }
+                String helpTableName1 = firstEntity.tableName() + "_" + secondEntity.tableName();
+                String helpTableName2 = secondEntity.tableName() + "_" + firstEntity.tableName();
+                if (!isTableExist(helpTableName1) && !isTableExist(helpTableName2)) {
+                    String firstColumnName = firstEntity.tableName() + "_id";
+                    String secondColumnName = secondEntity.tableName() + "_id";
+                    String createTable = "CREATE TABLE " + helpTableName1 + "(" + firstColumnName + " INTEGER, " + secondColumnName + " INTEGER)";
+                    statement.executeUpdate(createTable);
+                    statement.executeUpdate(SQLBuilder.buildCreateForeignKeyRequest(firstEntity, desiredField, helpTableName1));
+                    statement.executeUpdate(SQLBuilder.buildCreateForeignKeyRequest(secondEntity, desiredField, helpTableName1));
+                }
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    private static Entity getEntityFromFieldName(Field field) {
+        Class dependentClassName = null;
+        try {
+            String fullDesiredFieldName = field.getGenericType().toString();
+            String genericClassNameFormList = fullDesiredFieldName.substring(fullDesiredFieldName.indexOf("<") + 1, fullDesiredFieldName.indexOf(">"));
+            dependentClassName = Class.forName(genericClassNameFormList);
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        }
+        return new Entity(dependentClassName);
     }
 
     private static boolean isResultContainsTableName(ResultSet resultSet, String tableName) throws SQLException {

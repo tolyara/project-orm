@@ -4,6 +4,7 @@ import java.lang.reflect.Field;
 
 import annotations.Column;
 import annotations.ForeignKey;
+import annotations.ManyToMany;
 import storages.DataTypes;
 import storages.Entity;
 import storages.Table;
@@ -69,6 +70,20 @@ public final class SQLBuilder {
             e.printStackTrace();
         }
 
+        return SQLRequest.toString();
+    }
+
+    public static String buildCreateForeignKeyRequest(Entity entity, Field field, String helpTableName) {
+        ManyToMany annotation = field.getAnnotation(ManyToMany.class);
+        String columnName = entity.tableName() + "_id";
+        String s = annotation.onUpdate().toString();
+        StringBuilder SQLRequest = new StringBuilder();
+        SQLRequest.append("ALTER TABLE ").append(helpTableName).append(" ADD CONSTRAINT ");
+        SQLRequest.append("fk_").append(helpTableName).append("_").append(columnName);
+        SQLRequest.append(" FOREIGN KEY (").append(columnName).append(")");
+        SQLRequest.append(" REFERENCES ").append(entity.tableName()).append(" ").append("(id)");
+        SQLRequest.append(" ON UPDATE ").append(annotation.onUpdate().toString()).append(" ");
+        SQLRequest.append(" ON DELETE ").append(annotation.onDelete().toString()).append(" ");
         return SQLRequest.toString();
     }
 
