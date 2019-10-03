@@ -5,6 +5,7 @@ import java.util.List;
 
 import SQL.EntityDAO;
 import demo.models.Client;
+import demo.models.ImmutableWorker;
 import demo.models.TestModel;
 import demo.models.Worker;
 import storages.Entity;
@@ -49,38 +50,41 @@ public class MainClass {
 
 	private static void doDemo() throws Exception {
 		// Table.createTableFromEntity(new Entity(Worker.class));
-		printReceivedObjects(EntityDAO.getInstance().readAllRecordsOrderedByPK(new Entity(Worker.class)));
-//		EntityDAO.getInstance().createRecordInTable(new Entity(new Worker(12, "test2", "ddd2")));		
-//		Entity en = EntityDAO.getInstance().selectEntityById(new Entity(Worker.class), 6);
-//		System.out.println(en.getEntityObject().toString());
+		
+//		printReceivedObjects(EntityDAO.getInstance().readAllRecordsOrderedByPK((Worker.class)));
 
-		// Table.createRecordInTable(new Entity(new Worker(12, "test2", "ddd2")));
+		 Object en = EntityDAO.getInstance().selectEntityById(Worker.class, 7);
+		 System.out.println(en);
+
+//		 Table.createRecordInTable(new Entity(new ImmutableWorker(12, "tes65", true, 600.5)));
+//		Table.createRecordInTable(new Entity(new Worker(12, "test8", false, 88)));
 		// Table.createTableFromEntity(new Entity(Client.class));
-		// Table.createTableFromEntity(new Entity(TestModel.class));
 		// Table.deleteEntityTable("worker");
-		// EntityDAO.getInstance().updateEntity(new Entity(new Worker(12, "super_test",
-		// "ddww")));
+		// EntityDAO.getInstance().updateEntity(new Entity(new Worker(1, "super_test",
+		// false, 1000)));
+		// EntityDAO.getInstance().deleteRecordInTableByPK(new Entity(new Worker(1)));
 	}
 
-	private static void printReceivedObjects(List<Entity> objects)
+	private static void printReceivedObjects(List<Object> objects)
 			throws IllegalArgumentException, IllegalAccessException {
-		for (Entity entity : objects) {
-			Worker o = (Worker) entity.getEntityObject();
-			System.out.println(o.getNumber());
+		for (Object o : objects) {
+//			Worker o = (Worker) entity.getEntityObject();
+			System.out.println(((Worker) o).getId());
 			// for (Field field : o.getClass().getDeclaredFields()) {
 			// field.setAccessible(true);
 			// System.out.printf("%14s", field.get(o));
 			// }
 			// System.out.println();
 		}
+//		System.out.println(objects.size());
 	}
 
 	private static void tryTransaction() throws Exception {
 		Transaction tx = new Transaction();
 		tx.openConnection();
-		Table.createRecordInTable(new Entity(new Worker(-1, "Nut", "Nut")));
+		Table.createRecordInTable(new Entity(new Worker(12, "test1", false, 1200.5)));
 		// myORM.close();
-		EntityDAO.getInstance().updateEntity(new Entity(new Worker(12, "super_test", "ddww")));
+		EntityDAO.getInstance().updateRecordInTable(new Entity(new Worker(12, "test1", false, 1200.5)));
 		try {
 			tx.commit();
 		} catch (Throwable e) {

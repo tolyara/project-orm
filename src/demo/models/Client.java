@@ -2,10 +2,12 @@ package demo.models;
 
 import annotations.Column;
 import annotations.Model;
+import annotations.PrimaryKey;
 
 @Model(tableName = "client", primaryKey = "id")
 public class Client {
 	
+	@PrimaryKey
 	private int id;
 
 	@Column(fieldName = "surname")

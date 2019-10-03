@@ -2,42 +2,56 @@ package demo.models;
 
 import annotations.Column;
 import annotations.Model;
+import annotations.PrimaryKey;
 
 @Model(tableName = "worker", primaryKey = "worker_id")
 public class Worker {
 	
-	@Column(fieldName = "worker_id")
+	@PrimaryKey
 	private int id;
 
 	@Column(fieldName = "worker_surname")
 	private String surname;
 	
 	@Column(fieldName = "worker_address")
-	private String address;
+	private boolean hasAddress;
+	
+	@Column(fieldName = "worker_salary")
+	private double salary;
+	
+	private int someFieldWithoutAnnotation;
 
-	public Worker(int number, String surname, String address) {
+	public Worker(int id, String surname, boolean address) {
 		super();
-		this.id = number;
+		this.id = id;
 		this.surname = surname;
-		this.address = address;
+		this.hasAddress = address;
 	}
 
-	public Worker(int number) {
+	public Worker(int id) {
 		super();
-		this.id = number;
+		this.id = id;
 	}
 
 	public Worker() {
 		super();
+	}	
+
+	public Worker(int id, String surname, boolean hasAddress, double salary) {
+		super();
+		this.id = id;
+		this.surname = surname;
+		this.hasAddress = hasAddress;
+		this.salary = salary;
 	}
 
-	public Worker(String surname, String address) {
+	public Worker(String surname, boolean address) {
 		super();
 		this.surname = surname;
-		this.address = address;
+		this.hasAddress = address;
 	}
 
-	public int getNumber() {
+	public int getId() {
 		return id;
 	}
 
@@ -45,15 +59,13 @@ public class Worker {
 		return surname;
 	}
 
-	public String getAddress() {
-		return address;
+	public boolean getAddress() {
+		return hasAddress;
 	}
 
 	@Override
 	public String toString() {
-		return "Worker [id=" + id + ", surname=" + surname + ", address=" + address + "]";
+		return "Worker [id=" + id + ", surname=" + surname + ", hasAddress=" + hasAddress + ", salary=" + salary + "]";
 	}
-	
-	
 
 }

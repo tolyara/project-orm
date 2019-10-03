@@ -64,15 +64,16 @@ public final class SQLBuilder {
 
     public static String buildFieldValuesLine(Entity entity){
         StringBuilder valuesLine = new StringBuilder();
-        String columnName, fieldValue;
+        String columnName;
+        Object fieldValue;
 
         for (Field parsedField : entity.getEntityClass().getDeclaredFields()) {
+        	if (parsedField.isAnnotationPresent(Column.class)) {
             columnName = parsedField.getAnnotation(Column.class).fieldName();
             //todo refactor
-            if (!columnName.toLowerCase().equals(entity.primaryKey())) { /* skip field that is PK */
                 try {
                     parsedField.setAccessible(true);
-                    fieldValue = ((String) parsedField.get(entity.getEntityObject()));
+                    fieldValue = ((Object) parsedField.get(entity.getEntityObject()));
                     valuesLine.append(columnName + " = '" + fieldValue + "'" + ", ");
                 } catch (IllegalArgumentException | IllegalAccessException e) {
                     e.printStackTrace();

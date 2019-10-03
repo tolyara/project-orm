@@ -8,7 +8,11 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.sql.rowset.CachedRowSet;
+
 import annotations.Column;
+import annotations.Model;
+import annotations.PrimaryKey;
 
 public class EntityDAO {
 
@@ -53,11 +57,11 @@ public class EntityDAO {
 		return addedRecordId;
 	}
 
-	public boolean deleteRecordInTableByPK(Entity entity, int keyValue) {
+	public boolean deleteRecordInTableByPK(Entity entity) {
 
 		boolean flag = false;
 		final String QUERY_DELETE_ON_TABLE = "DELETE FROM " + entity.tableName() + " WHERE " + entity.primaryKey()
-				+ " = " + keyValue;
+				+ " = " + entity.getPrimaryKeyValue();
 
 		try (final PreparedStatement statement = connection.prepareStatement(QUERY_DELETE_ON_TABLE)) {
 			statement.executeUpdate();
@@ -69,53 +73,78 @@ public class EntityDAO {
 	}
 
 	// TODO elements of list must be unique
-	public List<Entity> readAllRecordsOrderedByPK(Entity entity) {
-		final String TABLE_NAME = entity.tableName();
-		final String PK_NAME = entity.primaryKey();
+	public List<Object> readAllRecordsOrderedByPK(Class<?> entityClass) {
+		// final String TABLE_NAME = entity.tableName();
+		// final String PK_NAME = entity.primaryKey();
+
+		Model modelAnnotation = (Model) entityClass.getAnnotation(Model.class);
+		final String TABLE_NAME = modelAnnotation.tableName();
+		String PK_NAME = modelAnnotation.primaryKey();
+
 		final String QUERY_READ_FROM_TABLE = "SELECT * FROM " + TABLE_NAME + " ORDER BY " + PK_NAME + ";";
 
-		List<Entity> entities = new ArrayList<>();
+		List<Object> objects = new ArrayList<>();
 
 		try (final Statement statement = connection.createStatement();
-				final ResultSet rs = statement.executeQuery(QUERY_READ_FROM_TABLE)) {
-			while (rs.next()) {
-				Entity en = new Entity(entity.getEntityObject());
-				en = selectEntityById(entity, rs.getInt(PK_NAME));
-				// Entity en = selectEntityById(entity, rs.getInt(PK_NAME));
-				entities.add(en);
-			}
-		} catch (SQLException e) {
-			e.printStackTrace();
-		}
-		return entities;
-	}
-
-	public Entity selectEntityById(Entity entity, int id) {
-		String QUERY_SELECT_BY_ID = "SELECT * FROM " + entity.tableName() + " WHERE " + entity.primaryKey() + " = "
-				+ id;
-		try (final PreparedStatement statement = connection.prepareStatement(QUERY_SELECT_BY_ID)) {
-			ResultSet resultSet = statement.executeQuery();
-			resultSet.next();
-			for (Field parsedField : entity.getEntityClass().getDeclaredFields()) {
-				final String COLUMN_NAME = parsedField.getAnnotation(Column.class).fieldName();
+				final ResultSet resultSet = statement.executeQuery(QUERY_READ_FROM_TABLE)) {
+			while (resultSet.next()) {
+				Object object = new Object();
 				try {
-					parsedField.setAccessible(true);
-					if (COLUMN_NAME.equals(entity.primaryKey())) {
-						parsedField.set(entity.getEntityObject(), resultSet.getInt(entity.primaryKey()));
-					} else {
-						parsedField.set(entity.getEntityObject(), resultSet.getString(COLUMN_NAME));
-					}
-				} catch (IllegalArgumentException | IllegalAccessException e) {
+					object = entityClass.newInstance();
+					object = setFieldsValue(entityClass, resultSet, PK_NAME);
+
+				} catch (InstantiationException | IllegalAccessException e) {
 					e.printStackTrace();
 				}
+
+				objects.add(object);
 			}
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
-		return entity;
+		return objects;
 	}
 
-	public void updateEntity(Entity entity) {
+	public Object selectEntityById(Class<?> entity, int id) {
+
+		Model modelAnnotation = (Model) entity.getAnnotation(Model.class);
+		final String TABLE_NAME = modelAnnotation.tableName();
+		String PK_NAME = modelAnnotation.primaryKey();
+		Object object = new Object();
+		
+		String QUERY_SELECT_BY_ID = "SELECT * FROM " + TABLE_NAME + " WHERE " + PK_NAME + " = " + id;
+		try (final Statement statement = connection.createStatement();
+				final ResultSet resultSet = statement.executeQuery(QUERY_SELECT_BY_ID)) {
+			resultSet.next();
+			object = setFieldsValue(entity, resultSet, PK_NAME);
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return object;
+	}
+
+	private Object setFieldsValue(Class<?> entityClass, ResultSet resultSet, String primaryKey)
+			throws SQLException {
+		Object object = new Object();
+		try {
+			// object = entityClass.newInstance();
+			for (Field parsedField : entityClass.getDeclaredFields()) {
+				parsedField.setAccessible(true);
+				if (parsedField.isAnnotationPresent(PrimaryKey.class)) {
+					parsedField.set(object, resultSet.getInt(primaryKey));
+				} else if (parsedField.isAnnotationPresent(Column.class)) {
+					final String COLUMN_NAME = parsedField.getAnnotation(Column.class).fieldName();
+					parsedField.set(object, resultSet.getObject(COLUMN_NAME));
+				}
+			}
+		} catch (IllegalArgumentException | IllegalAccessException e) {
+			e.printStackTrace();
+
+		}
+		return object;
+	}
+
+	public void updateRecordInTable(Entity entity) {
 		String preparedData = SQLBuilder.buildFieldValuesLine(entity);
 
 		final String QUERY_UPDATE_ON_TABLE = "UPDATE " + entity.tableName() + " SET " + preparedData + " WHERE "
