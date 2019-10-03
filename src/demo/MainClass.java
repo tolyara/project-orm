@@ -48,8 +48,12 @@ public class MainClass {
 	}
 
 	private static void doDemo() throws Exception {
+		Table.createTableFromEntity(new Entity(Worker.class));
+		Entity entity = EntityDAO.getInstance().selectEntityById(new Entity(Client.class), 1);
+		entity.loadOneToOne();
+		System.out.println();
 		// Table.createTableFromEntity(new Entity(Worker.class));
-		printReceivedObjects(EntityDAO.getInstance().readAllRecordsOrderedByPK(new Entity(Worker.class)));
+		//printReceivedObjects(EntityDAO.getInstance().readAllRecordsOrderedByPK(new Entity(Worker.class)));
 //		EntityDAO.getInstance().createRecordInTable(new Entity(new Worker(12, "test2", "ddd2")));		
 //		Entity en = EntityDAO.getInstance().selectEntityById(new Entity(Worker.class), 6);
 //		System.out.println(en.getEntityObject().toString());

@@ -1,5 +1,6 @@
 package SQL;
 
+import annotations.Model;
 import storages.Entity;
 import storages.PGConnectionPool;
 
@@ -97,13 +98,14 @@ public class EntityDAO {
 			ResultSet resultSet = statement.executeQuery();
 			resultSet.next();
 			for (Field parsedField : entity.getEntityClass().getDeclaredFields()) {
-				final String COLUMN_NAME = parsedField.getAnnotation(Column.class).fieldName();
+
 				try {
 					parsedField.setAccessible(true);
-					if (COLUMN_NAME.equals(entity.primaryKey())) {
+					if (parsedField.getName().equals(entity.primaryKey())) {
 						parsedField.set(entity.getEntityObject(), resultSet.getInt(entity.primaryKey()));
-					} else {
-						parsedField.set(entity.getEntityObject(), resultSet.getString(COLUMN_NAME));
+					} else if(parsedField.getAnnotation(Column.class) != null) {
+
+						parsedField.set(entity.getEntityObject(), resultSet.getString(parsedField.getAnnotation(Column.class).fieldName()));
 					}
 				} catch (IllegalArgumentException | IllegalAccessException e) {
 					e.printStackTrace();

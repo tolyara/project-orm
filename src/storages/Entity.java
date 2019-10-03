@@ -1,9 +1,11 @@
 package storages;
 
+import SQL.EntityDAO;
 import annotations.Column;
 import annotations.ForeignKey;
-import annotations.Model;
 
+import annotations.OneToOne;
+import annotations.Model;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
@@ -18,8 +20,10 @@ public class Entity implements Model {
     private Class entityClass;
     private Object entityObject;
 
+
+
     public Entity(Class entityClass) {
-        if(entityClass.getAnnotation(Model.class) != null) {
+        if (entityClass.getAnnotation(Model.class) != null) {
             this.entityClass = entityClass;
             try {
                 entityObject = entityClass.newInstance();
@@ -28,21 +32,21 @@ public class Entity implements Model {
             } catch (InstantiationException e) {
                 e.printStackTrace();
             }
-        }else {
+        } else {
             //TODO exception
         }
     }
 
-    public Entity(Object object){
-        if(object.getClass().getAnnotation(Model.class) != null){
+    public Entity(Object object) {
+        if (object.getClass().getAnnotation(Model.class) != null) {
             this.entityClass = object.getClass();
             entityObject = object;
-        }else {
+        } else {
             //TODO exception
         }
     }
 
-    public List<String> getFieldsNames(){
+    public List<String> getFieldsNames() {
         List<String> nameFields = new ArrayList<>();
         for (Field field : entityClass.getDeclaredFields()) {
             if (field.isAnnotationPresent(Column.class)) {
@@ -72,10 +76,10 @@ public class Entity implements Model {
         return foreignKeys;
     }
 
-    public int getPrimaryKeyValue(){
+    public int getPrimaryKeyValue() {
         int value = 0;
         for (Field column : getEntityClass().getDeclaredFields()) {
-        	final String COLUMN_NAME = column.getAnnotation(Column.class).fieldName();
+            final String COLUMN_NAME = column.getAnnotation(Column.class).fieldName();
             if (COLUMN_NAME.toLowerCase().equals(primaryKey())) {
                 try {
                     column.setAccessible(true);
@@ -87,14 +91,15 @@ public class Entity implements Model {
         }
         return value;
     }
+
     /*
      * Return line with entity fields toLowerCase comma separated without PK
      */
-    public String getParsedFieldsLine(){
-       StringBuilder parsedFields = new StringBuilder();
+    public String getParsedFieldsLine() {
+        StringBuilder parsedFields = new StringBuilder();
 
         for (Field parsedField : entityClass.getDeclaredFields()) {
-        	final String COLUMN_NAME = parsedField.getAnnotation(Column.class).fieldName();
+            final String COLUMN_NAME = parsedField.getAnnotation(Column.class).fieldName();
             if (!COLUMN_NAME.toLowerCase().equals(primaryKey())) { /* skip field that is PK */
                 try {
                     parsedFields.append(COLUMN_NAME.toLowerCase() + ", ");
@@ -114,12 +119,12 @@ public class Entity implements Model {
         StringBuilder preparedValues = new StringBuilder();
 
         for (Field parsedField : entityClass.getDeclaredFields()) {
-        	final String COLUMN_NAME = parsedField.getAnnotation(Column.class).fieldName();
+            final String COLUMN_NAME = parsedField.getAnnotation(Column.class).fieldName();
             if (!COLUMN_NAME.toLowerCase().equals(primaryKey())) { /* skip field that is PK */
                 try {
                     parsedField.setAccessible(true);
                     /* getting value that we need to push */
-                    String fieldValue =  (String) parsedField.get(entityObject);
+                    String fieldValue = (String) parsedField.get(entityObject);
                     preparedValues.append("'" + fieldValue + "'" + ", ");
                 } catch (IllegalArgumentException | IllegalAccessException | ClassCastException e) {
                     e.printStackTrace();
@@ -128,6 +133,28 @@ public class Entity implements Model {
         }
 
         return preparedValues.toString().trim().substring(0, preparedValues.toString().length() - 2); //return with delete last comma
+    }
+
+    public void loadOneToOne() throws IllegalAccessException, InstantiationException, NoSuchFieldException {
+
+        for(Field field : entityClass.getDeclaredFields()){
+            if(field.getAnnotation(OneToOne.class) != null){
+
+                if(!Table.isTableExist(new Entity(field.getType()).tableName())){
+                    Table.createTableFromEntity(new Entity(field.getType()));
+                }
+
+
+                field.setAccessible(true);
+                Field keyIndex = entityClass.getDeclaredField(field.getAnnotation(OneToOne.class).column());
+                keyIndex.setAccessible(true);
+                int index = Integer.parseInt(keyIndex.get(entityObject).toString());
+                Entity test = EntityDAO.getInstance().selectEntityById(new Entity(field.getType()),index);
+                field.set(entityObject, test.entityObject);
+            }
+
+        }
+
     }
 
     public Model getModelAnnotation(){

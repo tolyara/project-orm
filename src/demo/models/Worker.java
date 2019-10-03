@@ -6,8 +6,7 @@ import annotations.Model;
 @Model(tableName = "worker", primaryKey = "worker_id")
 public class Worker {
 	
-	@Column(fieldName = "worker_id")
-	private int id;
+	private int worker_id;
 
 	@Column(fieldName = "worker_surname")
 	private String surname;
@@ -17,14 +16,14 @@ public class Worker {
 
 	public Worker(int number, String surname, String address) {
 		super();
-		this.id = number;
+		this.worker_id = number;
 		this.surname = surname;
 		this.address = address;
 	}
 
 	public Worker(int number) {
 		super();
-		this.id = number;
+		this.worker_id = number;
 	}
 
 	public Worker() {
@@ -38,7 +37,7 @@ public class Worker {
 	}
 
 	public int getNumber() {
-		return id;
+		return worker_id;
 	}
 
 	public String getSurname() {
@@ -51,7 +50,7 @@ public class Worker {
 
 	@Override
 	public String toString() {
-		return "Worker [id=" + id + ", surname=" + surname + ", address=" + address + "]";
+		return "Worker [id=" + worker_id + ", surname=" + surname + ", address=" + address + "]";
 	}
 	
 	

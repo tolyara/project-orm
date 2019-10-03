@@ -2,10 +2,11 @@ package demo.models;
 
 import annotations.Column;
 import annotations.Model;
+import annotations.OneToOne;
 
 @Model(tableName = "client", primaryKey = "id")
 public class Client {
-	
+	//@Column(fieldName = "id")
 	private int id;
 
 	@Column(fieldName = "surname")
@@ -16,6 +17,9 @@ public class Client {
 	
 	@Column(fieldName = "isgirl")
 	private String isGirl;
+
+	@OneToOne(table = "worker", column = "id")
+	Worker worker;
 
 	public Client() {
 
