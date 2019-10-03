@@ -46,13 +46,13 @@ public class EntityDAO {
 			statement.executeUpdate();
 			try (ResultSet generatedKeys = statement.getGeneratedKeys()) {
 				if (generatedKeys.next()) {
-					addedRecordId = generatedKeys.getInt(1); 
+					addedRecordId = generatedKeys.getInt(1);
 				} else {
 					throw new IllegalStateException("Could not return PK of added client!");
 				}
 			}
 		} catch (SQLException e) {
-			e.printStackTrace(); 
+			e.printStackTrace();
 		}
 		return addedRecordId;
 	}
@@ -74,7 +74,6 @@ public class EntityDAO {
 
 	public List<Entity> readAllRecordsOrderedByPK(Entity entity) {
 
-		//Model modelAnnotation = (Model) entityClass.getAnnotation(Model.class);
 		final String TABLE_NAME = entity.tableName();
 		String PK_NAME = entity.primaryKey();
 
@@ -130,7 +129,7 @@ public class EntityDAO {
 		return localEntity;
 	}
 
-@Deprecated
+	@Deprecated
 	private Object getNewInstance(Class<?> entityClass) {
 		Object o = null;
 		try {
