@@ -50,6 +50,17 @@ public class Worker {
 		this.surname = surname;
 		this.hasAddress = address;
 	}
+	
+	
+
+	public Worker(int id, String surname, boolean hasAddress, double salary, int someFieldWithoutAnnotation) {
+		super();
+		this.id = id;
+		this.surname = surname;
+		this.hasAddress = hasAddress;
+		this.salary = salary;
+		this.someFieldWithoutAnnotation = someFieldWithoutAnnotation;
+	}
 
 	public int getId() {
 		return id;

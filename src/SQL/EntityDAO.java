@@ -72,10 +72,7 @@ public class EntityDAO {
 		return flag;
 	}
 
-	// TODO elements of list must be unique
 	public List<Object> readAllRecordsOrderedByPK(Class<?> entityClass) {
-		// final String TABLE_NAME = entity.tableName();
-		// final String PK_NAME = entity.primaryKey();
 
 		Model modelAnnotation = (Model) entityClass.getAnnotation(Model.class);
 		final String TABLE_NAME = modelAnnotation.tableName();
@@ -88,15 +85,8 @@ public class EntityDAO {
 		try (final Statement statement = connection.createStatement();
 				final ResultSet resultSet = statement.executeQuery(QUERY_READ_FROM_TABLE)) {
 			while (resultSet.next()) {
-				Object object = new Object();
-				try {
-					object = entityClass.newInstance();
-					object = setFieldsValue(entityClass, resultSet, PK_NAME);
-
-				} catch (InstantiationException | IllegalAccessException e) {
-					e.printStackTrace();
-				}
-
+				Object object = getNewInstance(entityClass);
+				object = setFieldsValue(entityClass, resultSet, PK_NAME);
 				objects.add(object);
 			}
 		} catch (SQLException e) {
@@ -111,7 +101,7 @@ public class EntityDAO {
 		final String TABLE_NAME = modelAnnotation.tableName();
 		String PK_NAME = modelAnnotation.primaryKey();
 		Object object = new Object();
-		
+
 		String QUERY_SELECT_BY_ID = "SELECT * FROM " + TABLE_NAME + " WHERE " + PK_NAME + " = " + id;
 		try (final Statement statement = connection.createStatement();
 				final ResultSet resultSet = statement.executeQuery(QUERY_SELECT_BY_ID)) {
@@ -123,11 +113,9 @@ public class EntityDAO {
 		return object;
 	}
 
-	private Object setFieldsValue(Class<?> entityClass, ResultSet resultSet, String primaryKey)
-			throws SQLException {
-		Object object = new Object();
+	private Object setFieldsValue(Class<?> entityClass, ResultSet resultSet, String primaryKey) throws SQLException {
+		Object object = getNewInstance(entityClass);
 		try {
-			// object = entityClass.newInstance();
 			for (Field parsedField : entityClass.getDeclaredFields()) {
 				parsedField.setAccessible(true);
 				if (parsedField.isAnnotationPresent(PrimaryKey.class)) {
@@ -142,6 +130,16 @@ public class EntityDAO {
 
 		}
 		return object;
+	}
+
+	private Object getNewInstance(Class<?> entityClass) {
+		Object o = null;
+		try {
+			o = entityClass.newInstance();
+		} catch (InstantiationException | IllegalAccessException e1) {
+			e1.printStackTrace();
+		}
+		return o;
 	}
 
 	public void updateRecordInTable(Entity entity) {

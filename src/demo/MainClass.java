@@ -51,18 +51,18 @@ public class MainClass {
 	private static void doDemo() throws Exception {
 		// Table.createTableFromEntity(new Entity(Worker.class));
 		
-//		printReceivedObjects(EntityDAO.getInstance().readAllRecordsOrderedByPK((Worker.class)));
+		printReceivedObjects(EntityDAO.getInstance().readAllRecordsOrderedByPK((Worker.class)));
 
-		 Object en = EntityDAO.getInstance().selectEntityById(Worker.class, 7);
-		 System.out.println(en);
+//		 Object en = EntityDAO.getInstance().selectEntityById(Worker.class, 7);
+//		 System.out.println(en);
 
 //		 Table.createRecordInTable(new Entity(new ImmutableWorker(12, "tes65", true, 600.5)));
-//		Table.createRecordInTable(new Entity(new Worker(12, "test8", false, 88)));
+//		Table.createRecordInTable(new Entity(new Worker(12, "test9", false, 999, 9)));
 		// Table.createTableFromEntity(new Entity(Client.class));
 		// Table.deleteEntityTable("worker");
-		// EntityDAO.getInstance().updateEntity(new Entity(new Worker(1, "super_test",
-		// false, 1000)));
-		// EntityDAO.getInstance().deleteRecordInTableByPK(new Entity(new Worker(1)));
+//		 EntityDAO.getInstance().updateRecordInTable(new Entity(new Worker(10, "super_test4",
+//		 false, 1000, 23)));
+//		 EntityDAO.getInstance().deleteRecordInTableByPK(new Entity(new Worker(10)));
 	}
 
 	private static void printReceivedObjects(List<Object> objects)
