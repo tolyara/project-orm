@@ -1,14 +1,12 @@
 package storages;
 
-import annotations.Column;
-import annotations.ForeignKey;
-import annotations.Model;
-import annotations.PrimaryKey;
+import annotations.*;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /*
@@ -71,6 +69,16 @@ public class Entity {
 			}
 		}
 		return foreignKeys;
+	}
+
+	public List<Field> getManyToManyFields() {
+		List<Field> fieldsWithAnnotation = new ArrayList<>();
+		for (Field f : entityClass.getDeclaredFields()){
+			if (f.isAnnotationPresent(ManyToMany.class)){
+				fieldsWithAnnotation.add(f);
+			}
+		}
+		return fieldsWithAnnotation;
 	}
 
 	public Integer getPrimaryKeyValue() {

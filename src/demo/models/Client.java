@@ -1,10 +1,10 @@
 package demo.models;
 
-import annotations.Column;
-import annotations.Model;
-import annotations.PrimaryKey;
-import annotations.ForeignKey;
+import annotations.*;
 import storages.Actions;
+
+import java.lang.reflect.Field;
+import java.util.List;
 
 @Model(tableName = "client", primaryKey = "id")
 public class Client {
@@ -24,6 +24,9 @@ public class Client {
 	@Column(fieldName = "test_id")
 	@ForeignKey(entity = "TestModel", column = "id", onDelete = Actions.CASCADE)
 	private int testId;
+
+	@ManyToMany
+	private List<Worker> workers;
 
 	public Client() {
 
