@@ -102,8 +102,9 @@ public class EntityDAO {
 		String QUERY_SELECT_BY_ID = "SELECT * FROM " + TABLE_NAME + " WHERE " + PK_NAME + " = " + id;
 		try (final Statement statement = connection.createStatement();
 				final ResultSet resultSet = statement.executeQuery(QUERY_SELECT_BY_ID)) {
-			resultSet.next();
-			localEntity = setFieldsValue(entity, resultSet, PK_NAME);
+			while (resultSet.next()) {
+				localEntity = setFieldsValue(entity, resultSet, PK_NAME);
+			}
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}

@@ -53,12 +53,13 @@ public class MainClass {
 	private static void doDemo() throws Exception {
 		// Table.createTableFromEntity(new Entity(Worker.class));
 
-		printReceivedObjects(EntityDAO.getInstance().readAllRecordsOrderedByPK((Worker.class)));
+		printReceivedObjects(EntityDAO.getInstance().readAllRecordsOrderedByPK(new Entity(Worker.class)));
 
-		// Object en = EntityDAO.getInstance().selectEntityById(Worker.class, 7);
-		// System.out.println(en);
+//		Entity en = EntityDAO.getInstance().selectEntityById(new Entity(Worker.class), 40);
+//		System.out.println(en.getEntityObject());
 
-//		Table.createRecordInTable(new Entity(new ImmutableWorker(12, "tes65", true, 600.5)));
+		// Table.createRecordInTable(new Entity(new ImmutableWorker(12, "tes65", true,
+		// 600.5)));
 		// Table.createRecordInTable(new Entity(new Worker(12, "test9", false, 999,
 		// 9)));
 		// Table.createTableFromEntity(new Entity(Client.class));
@@ -66,19 +67,18 @@ public class MainClass {
 		// "super_test4",
 		// false, 1000, 23)));
 		// EntityDAO.getInstance().deleteRecordInTableByPK(new Entity(new Worker(10)));
-		 entityDAO.deleteAllRecordsInTable(new Entity(Worker.class));
+		entityDAO.deleteAllRecordsInTable(new Entity(Worker.class)); 
 	}
 
-	private static void printReceivedObjects(List<Object> objects)
+	private static void printReceivedObjects(List<Entity> entities)
 			throws IllegalArgumentException, IllegalAccessException {
-		for (Object o : objects) {
-			// Worker o = (Worker) entity.getEntityObject();
-			System.out.println(((Worker) o).getId());
-			// for (Field field : o.getClass().getDeclaredFields()) {
-			// field.setAccessible(true);
-			// System.out.printf("%14s", field.get(o));
-			// }
-			// System.out.println();
+		for (Entity entity : entities) {
+			Worker worker = (Worker) entity.getEntityObject();
+			for (Field field : worker.getClass().getDeclaredFields()) {
+				field.setAccessible(true);
+				System.out.printf("%14s", field.get(worker));
+			}
+			System.out.println();
 		}
 		// System.out.println(objects.size());
 	}
@@ -100,7 +100,7 @@ public class MainClass {
 	/*
 	 * Method checks time of execution various ways of connection
 	 */
-	private static void checkProcuctivity() { 
+	private static void checkProcuctivity() {
 
 		long start = System.currentTimeMillis();
 		for (int i = 0; i < ITERATION_NUMBER; i++) {
