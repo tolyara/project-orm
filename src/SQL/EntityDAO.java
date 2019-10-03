@@ -46,13 +46,13 @@ public class EntityDAO {
 			statement.executeUpdate();
 			try (ResultSet generatedKeys = statement.getGeneratedKeys()) {
 				if (generatedKeys.next()) {
-					addedRecordId = generatedKeys.getInt(1);
+					addedRecordId = generatedKeys.getInt(1); 
 				} else {
 					throw new IllegalStateException("Could not return PK of added client!");
 				}
 			}
 		} catch (SQLException e) {
-			e.printStackTrace();
+			e.printStackTrace(); 
 		}
 		return addedRecordId;
 	}

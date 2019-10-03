@@ -32,7 +32,7 @@ public class TestCRUD {
 		int id = Table.createRecordInTable(new Entity(iWorker));
 		ImmutableWorker workerFromDB = (ImmutableWorker) entityDAO.selectEntityById(ImmutableWorker.class, id);
 		assertEquals(workerFromDB.getId(), id);
-		assertEquals(workerFromDB.getSurname(), "aaa1"); 
+		assertEquals(workerFromDB.getSurname(), "aaa1");  
 	}
 		
 }
