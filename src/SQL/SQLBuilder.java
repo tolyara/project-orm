@@ -4,9 +4,9 @@ import java.lang.reflect.Field;
 
 import annotations.Column;
 import annotations.ForeignKey;
-import annotations.Model;
 import storages.DataTypes;
 import storages.Entity;
+import storages.Table;
 
 /*
  * Class for building SQL requests
@@ -29,7 +29,6 @@ public final class SQLBuilder {
                 + " (" + primaryKey + " serial, ");
         SQLRequest.append(buildEntityFieldLine(entity));
         SQLRequest.append("PRIMARY KEY (").append(primaryKey).append(")");
-        SQLRequest.append(buildEntityForeignKeyFieldLine(entity));
         SQLRequest.append(")");
         return SQLRequest.toString();
     }
@@ -45,34 +44,46 @@ public final class SQLBuilder {
         return fieldLine.toString();
     }
 
-    private static String buildEntityForeignKeyFieldLine(Entity entity) {
-        StringBuilder foreignKeyFieldLine = new StringBuilder();
 
-        if (entity.getForeignKeyFields().size() > 0) {
-            for (Field field : entity.getForeignKeyFields()) {
-                foreignKeyFieldLine.append(", FOREIGN KEY ");
-                ForeignKey annotation = field.getAnnotation(ForeignKey.class);
-                foreignKeyFieldLine.append("(").append(field.getAnnotation(Column.class).fieldName()).append(")");
-                foreignKeyFieldLine.append(" REFERENCES ").append(annotation.table()).append(" ");
-                foreignKeyFieldLine.append("(").append(annotation.column()).append(")");
-                foreignKeyFieldLine.append(" ON UPDATE ").append(annotation.onUpdate().toString()).append(" ");
-                foreignKeyFieldLine.append(" ON DELETE ").append(annotation.onDelete().toString()).append(" ");
+    public static String buildCreateForeignKeyRequest(Entity entity, Field field) {
+        ForeignKey annotation = field.getAnnotation(ForeignKey.class);
+        StringBuilder SQLRequest = new StringBuilder();
+        try {
+            String name = "demo.models." + annotation.entity();
+            Entity entityRequest = new Entity(Class.forName(name));
+            String requestTableName = entityRequest.tableName();
+
+            if (!Table.isTableExist(requestTableName)) {
+                Table.createTableFromEntity(entityRequest);
             }
+
+            SQLRequest.append("ALTER TABLE ").append(entity.tableName()).append(" ADD CONSTRAINT ");
+            SQLRequest.append("fk_").append(entity.tableName()).append("_").append(field.getName());
+            SQLRequest.append(" FOREIGN KEY ");
+            SQLRequest.append("(").append(field.getAnnotation(Column.class).fieldName()).append(")");
+            SQLRequest.append(" REFERENCES ").append(requestTableName).append(" ");
+            SQLRequest.append("(").append(annotation.column()).append(")");
+            SQLRequest.append(" ON UPDATE ").append(annotation.onUpdate().toString()).append(" ");
+            SQLRequest.append(" ON DELETE ").append(annotation.onDelete().toString()).append(" ");
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
         }
-        return foreignKeyFieldLine.toString();
+
+        return SQLRequest.toString();
     }
 
-    public static String buildFieldValuesLine(Entity entity){
+    public static String buildFieldValuesLine(Entity entity) {
         StringBuilder valuesLine = new StringBuilder();
-        String columnName, fieldValue;
+        String columnName;
+        Object fieldValue;
 
         for (Field parsedField : entity.getEntityClass().getDeclaredFields()) {
+        	if (parsedField.isAnnotationPresent(Column.class)) {
             columnName = parsedField.getAnnotation(Column.class).fieldName();
-            //todo refactor
-            if (!columnName.toLowerCase().equals(entity.primaryKey())) { /* skip field that is PK */
+
                 try {
                     parsedField.setAccessible(true);
-                    fieldValue = ((String) parsedField.get(entity.getEntityObject()));
+                    fieldValue = ((Object) parsedField.get(entity.getEntityObject()));
                     valuesLine.append(columnName + " = '" + fieldValue + "'" + ", ");
                 } catch (IllegalArgumentException | IllegalAccessException e) {
                     e.printStackTrace();
@@ -81,5 +92,4 @@ public final class SQLBuilder {
         }
         return valuesLine.toString().substring(0, valuesLine.length() - 2);
     }
-
 }

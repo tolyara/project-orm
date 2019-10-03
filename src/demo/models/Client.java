@@ -4,9 +4,14 @@ import annotations.Column;
 import annotations.Model;
 import annotations.OneToOne;
 
+import annotations.PrimaryKey;
+import annotations.ForeignKey;
+import storages.Actions;
+
 @Model(tableName = "client", primaryKey = "id")
 public class Client {
-	//@Column(fieldName = "id")
+	
+	@PrimaryKey
 	private int id;
 
 	@Column(fieldName = "surname")
@@ -18,8 +23,10 @@ public class Client {
 	@Column(fieldName = "isgirl")
 	private String isGirl;
 
-	@OneToOne(table = "worker", column = "id")
-	Worker worker;
+
+	@Column(fieldName = "test_id")
+	@ForeignKey(entity = "TestModel", column = "id", onDelete = Actions.CASCADE)
+	private int testId;
 
 	public Client() {
 
@@ -46,6 +53,12 @@ public class Client {
 		this.surname = surname;
 		this.name = name;
 		this.isGirl = isGirl;
-	}	
+	}
 
+	public Client(String surname, String name, String isGirl, int testId) {
+		this.surname = surname;
+		this.name = name;
+		this.isGirl = isGirl;
+		this.testId = testId;
+	}
 }
