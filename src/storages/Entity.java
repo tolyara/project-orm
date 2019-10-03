@@ -19,11 +19,17 @@ public class Entity {
 	private Class<?> entityClass;
 	private Object entityObject;
 
+
+
+
 	public Entity(Class entityClass) {
 		if (entityClass.getAnnotation(Model.class) != null) {
 			this.entityClass = entityClass;
+
 			try {
 				this.entityObject = entityClass.newInstance();
+				if(!Table.isTableExist(this.getModelAnnotation().tableName()))
+					Table.createTableFromEntity(this);
 			} catch (IllegalAccessException e) {
 				e.printStackTrace();
 			} catch (InstantiationException e) {
@@ -38,10 +44,13 @@ public class Entity {
 		if (object.getClass().getAnnotation(Model.class) != null) {
 			this.entityClass = object.getClass();
 			entityObject = object;
+			if(!Table.isTableExist(this.getModelAnnotation().tableName()))
+				Table.createTableFromEntity(this);
 		} else {
 			// TODO exception
 		}
 	}
+
 
 	public List<String> getFieldsNames() {
 		List<String> nameFields = new ArrayList<>();

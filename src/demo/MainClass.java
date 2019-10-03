@@ -50,8 +50,11 @@ public class MainClass {
 
 	private static void doDemo() throws Exception {
 		// Table.createTableFromEntity(new Entity(Worker.class));
-		
-		printReceivedObjects(EntityDAO.getInstance().readAllRecordsOrderedByPK((Worker.class)));
+
+		List<Entity> entities = EntityDAO.getInstance().readAllRecordsOrderedByPK(new Entity(Worker.class));
+		Entity entity = EntityDAO.getInstance().selectEntityById(new Entity(Worker.class), 3);
+		System.out.println("");
+		//printReceivedObjects(EntityDAO.getInstance().readAllRecordsOrderedByPK(new Entity(Worker.class)));
 
 //		 Object en = EntityDAO.getInstance().selectEntityById(Worker.class, 7);
 //		 System.out.println(en);
