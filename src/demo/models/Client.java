@@ -48,6 +48,12 @@ public class Client {
 		this.surname = surname;
 		this.name = name;
 		this.isGirl = isGirl;
-	}	
+	}
 
+	public Client(String surname, String name, String isGirl, int testId) {
+		this.surname = surname;
+		this.name = name;
+		this.isGirl = isGirl;
+		this.testId = testId;
+	}
 }

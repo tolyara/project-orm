@@ -15,18 +15,18 @@ public class TestModel {
 	@Field(fieldName = "test_field")
 	private String field;
 
-	@Field(fieldName = "test_sex")
-	private boolean sex;
+//	@Field(fieldName = "test_sex")
+//	private boolean sex;
 
-	@Field(fieldName = "birth_date")
-	private Date birthDate;
+//	@Field(fieldName = "birth_date")
+//	private Date birthDate;
 
 	@Field(fieldName = "age")
-	private int age;
+	private String age;
 
-	@Field(fieldName = "client_id")
-	@ForeignKey(entity = "Client", column = "id")
-	private int clientId;
+//	@Field(fieldName = "client_id")
+//	@ForeignKey(entity = "Client", column = "id")
+//	private int clientId;
 
 	public TestModel() {
 	}
@@ -37,6 +37,11 @@ public class TestModel {
 
 	public TestModel(int id) {
 		this.id = id;
+	}
+
+	public TestModel(String field, String age){
+		this.field = field;
+		this.age = age;
 	}
 
 }

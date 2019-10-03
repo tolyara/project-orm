@@ -75,7 +75,6 @@ public final class SQLBuilder {
 
         for (java.lang.reflect.Field parsedField : entity.getEntityClass().getDeclaredFields()) {
             columnName = parsedField.getName();
-            //todo refactor
             if (!columnName.toLowerCase().equals(entity.primaryKey())) { /* skip field that is PK */
                 try {
                     parsedField.setAccessible(true);
