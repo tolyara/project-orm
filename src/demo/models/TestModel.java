@@ -27,8 +27,9 @@ public class TestModel {
 	private int age;
 
 	@Column(fieldName = "client_id")
-	@ForeignKey(table = "client", column = "id", onUpdate = Actions.CASCADE, onDelete = Actions.CASCADE)
+	@ForeignKey(entity = "Client", column = "id", onUpdate = Actions.CASCADE, onDelete = Actions.CASCADE)
 	private int clientId;
+
 
 	public TestModel() {
 	}
@@ -70,6 +71,11 @@ public class TestModel {
 		} else if (!field.equals(other.field))
 			return false;
 		return true;
+	}
+
+	public TestModel(String field, int age){
+		this.field = field;
+		this.age = age;
 	}
 
 }

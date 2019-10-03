@@ -13,9 +13,10 @@ public class Settings {
 	private final Properties properties = new Properties();
 	private static final String PROPERTIES_PATH_1 = "./resources/orm.properties";	
 
-    private Settings() {  
+    private Settings() {
         try {
             properties.load(new FileInputStream(this.getClass().getClassLoader().getResource(PROPERTIES_PATH_1).getFile()));
+
         } catch (IOException e) {
             e.printStackTrace();
         }

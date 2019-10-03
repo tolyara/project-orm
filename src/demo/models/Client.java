@@ -3,6 +3,8 @@ package demo.models;
 import annotations.Column;
 import annotations.Model;
 import annotations.PrimaryKey;
+import annotations.ForeignKey;
+import storages.Actions;
 
 @Model(tableName = "client", primaryKey = "id")
 public class Client {
@@ -18,6 +20,10 @@ public class Client {
 	
 	@Column(fieldName = "isgirl")
 	private String isGirl;
+
+	@Column(fieldName = "test_id")
+	@ForeignKey(entity = "TestModel", column = "id", onDelete = Actions.CASCADE)
+	private int testId;
 
 	public Client() {
 
@@ -44,6 +50,12 @@ public class Client {
 		this.surname = surname;
 		this.name = name;
 		this.isGirl = isGirl;
-	}	
+	}
 
+	public Client(String surname, String name, String isGirl, int testId) {
+		this.surname = surname;
+		this.name = name;
+		this.isGirl = isGirl;
+		this.testId = testId;
+	}
 }

@@ -24,6 +24,12 @@ public class Table {
             try (Statement statement = PGConnectionPool.getInstance().getConnection().createStatement()) {
                 statement.executeUpdate(SQLBuilder.buildCreateTableRequest(entity));
 
+                List<java.lang.reflect.Field> foreignKeyFields = entity.getForeignKeyFields();
+                if(foreignKeyFields.size() > 0) {
+                    for (java.lang.reflect.Field field: foreignKeyFields){
+                        statement.executeUpdate(SQLBuilder.buildCreateForeignKeyRequest(entity, field));
+                    }
+                }
                 flag = true;
 
             } catch (SQLException e) {
@@ -63,7 +69,7 @@ public class Table {
 
         boolean flag = false;
         if(isTableExist(tableName)) {
-            final String QUERY_DELETE_TABLE = "DROP TABLE " + tableName +" RESTRICT;";
+            final String QUERY_DELETE_TABLE = "DROP TABLE " + tableName +" RESTRICT ;";
 
             try (final PreparedStatement statement = getConnection().prepareStatement(QUERY_DELETE_TABLE)) {
                 statement.executeUpdate();
