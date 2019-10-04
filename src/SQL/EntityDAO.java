@@ -1,6 +1,7 @@
 package SQL;
 
 import storages.Entity;
+import storages.MyConnection;
 import storages.PGConnectionPool;
 
 import java.lang.reflect.Field;
@@ -20,11 +21,7 @@ public class EntityDAO {
 	Connection connection;
 
 	private EntityDAO() {
-		try {
-			connection = PGConnectionPool.getInstance().getConnection();
-		} catch (SQLException e) {
-			e.printStackTrace();
-		}
+		connection = (new MyConnection(false)).getConnection();
 	}
 
 	public static EntityDAO getInstance() {
@@ -65,6 +62,19 @@ public class EntityDAO {
 
 		try (final PreparedStatement statement = connection.prepareStatement(QUERY_DELETE_ON_TABLE)) {
 			statement.executeUpdate();
+			flag = true;
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return flag;
+	}
+	
+	public boolean deleteAllRecordsInTable(Entity entity) {
+
+		boolean flag = false;
+		final String QUERY_DELETE_ON_TABLE = "TRUNCATE TABLE " + entity.tableName() + ";";
+		try (final Statement statement = connection.createStatement()) {
+			statement.executeUpdate(QUERY_DELETE_ON_TABLE);
 			flag = true;
 		} catch (SQLException e) {
 			e.printStackTrace();

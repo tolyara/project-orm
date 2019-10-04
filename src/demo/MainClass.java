@@ -1,6 +1,7 @@
 package demo;
 
 import java.lang.reflect.Field;
+import java.sql.*;
 import java.util.List;
 
 import SQL.EntityDAO;
@@ -20,11 +21,10 @@ public class MainClass {
 
 	public static final String POSTGRESQL_DRIVER = "org.postgresql.Driver";
 	private static final String VERSION = "beta version";
-	public static final MyConnection connection = new MyConnection(POSTGRESQL_DRIVER);
+	public static final MyConnection connection = new MyConnection(false);
 	private static final MyConnection connectionViaConnectionPool = new MyConnection();
 
 	private static final Client CLIENT = new Client("Ivanov", "Ivan", "false");
-	private static final Client CLIENT2 = new Client(1, "333", "456", "true");
 
 	private static final EntityDAO entityDAO = EntityDAO.getInstance();
 
@@ -32,9 +32,9 @@ public class MainClass {
 
 	public static void main(String[] args) throws Exception {
 
-		printHeader();
-		doDemo();
-		closeResources();
+		 printHeader();
+		 doDemo();
+		 closeResources();
 
 	}
 
@@ -51,23 +51,24 @@ public class MainClass {
 	}
 
 	private static void doDemo() throws Exception {
-		// Table.createTableFromEntity(new Entity(Worker.class));
+//		 Table.createTableFromEntity(new Entity(Worker.class));
 
-		printReceivedObjects(EntityDAO.getInstance().readAllRecordsOrderedByPK(new Entity(Worker.class)));
+//		printReceivedObjects(EntityDAO.getInstance().readAllRecordsOrderedByPK(new Entity(Worker.class)));
 
-//		Entity en = EntityDAO.getInstance().selectEntityById(new Entity(Worker.class), 40);
-//		System.out.println(en.getEntityObject());
+		// Entity en = EntityDAO.getInstance().selectEntityById(new
+		// Entity(Worker.class), 40);
+		// System.out.println(en.getEntityObject());
 
-		// Table.createRecordInTable(new Entity(new ImmutableWorker(12, "tes65", true,
-		// 600.5)));
+//		 Table.createRecordInTable(new Entity(new ImmutableWorker(12, "tes65", 9,
+//		 600.5)));
 		// Table.createRecordInTable(new Entity(new Worker(12, "test9", false, 999,
 		// 9)));
 		// Table.createTableFromEntity(new Entity(Client.class));
 		// EntityDAO.getInstance().updateRecordInTable(new Entity(new Worker(10,
 		// "super_test4",
 		// false, 1000, 23)));
-		// EntityDAO.getInstance().deleteRecordInTableByPK(new Entity(new Worker(10)));
-		entityDAO.deleteAllRecordsInTable(new Entity(Worker.class)); 
+//		System.out.println(EntityDAO.getInstance().deleteRecordInTableByPK(new Entity(new Worker(10))));
+		// entityDAO.deleteAllRecordsInTable(new Entity(Worker.class));
 	}
 
 	private static void printReceivedObjects(List<Entity> entities)
