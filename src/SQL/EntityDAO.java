@@ -46,6 +46,7 @@ public class EntityDAO {
 			statement.executeUpdate();
 			try (ResultSet generatedKeys = statement.getGeneratedKeys()) {
 				if (generatedKeys.next()) {
+					//todo why 1?
 					addedRecordId = generatedKeys.getInt(1); 
 				} else {
 					throw new IllegalStateException("Could not return PK of added client!");
@@ -85,6 +86,7 @@ public class EntityDAO {
 		try (final Statement statement = connection.createStatement();
 				final ResultSet resultSet = statement.executeQuery(QUERY_READ_FROM_TABLE)) {
 			while (resultSet.next()) {
+				//todo ???
 				Object object = getNewInstance(entityClass);
 				object = setFieldsValue(entityClass, resultSet, PK_NAME);
 				objects.add(object);

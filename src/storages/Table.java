@@ -5,9 +5,10 @@ import SQL.SQLBuilder;
 import annotations.ManyToMany;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.sql.*;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 /*
@@ -30,7 +31,7 @@ public class Table {
                 List<Field> foreignKeyFields = entity.getForeignKeyFields();
                 if (foreignKeyFields.size() > 0) {
                     for (Field field : foreignKeyFields) {
-                        statement.executeUpdate(SQLBuilder.buildCreateForeignKeyRequest(entity, field));
+                        statement.executeUpdate(SQLBuilder.buildForeignKeyRequest(entity, field));
                     }
                 }
 
@@ -68,6 +69,7 @@ public class Table {
     public static int createRecordInTable(Entity entity) {
 
         return EntityDAO.getInstance().createRecordInTable(entity);
+
     }
 
 
@@ -99,30 +101,59 @@ public class Table {
 
     private static void createManyToManyDependency(Entity firstEntity, Statement statement) {
         List<Field> manyToManyFields = firstEntity.getManyToManyFields();
-
-        for (Field desiredField : manyToManyFields) {
-            try {
-                Entity secondEntity = getEntityFromFieldName(desiredField);
+        if (manyToManyFields.size() > 0) {
+            for (Field desiredField : manyToManyFields) {
+                Entity secondEntity = getEntityFromField(desiredField);
                 if (!isTableExist(secondEntity.tableName())) {
                     createTableFromEntity(secondEntity);
                 }
-                String helpTableName1 = firstEntity.tableName() + "_" + secondEntity.tableName();
-                String helpTableName2 = secondEntity.tableName() + "_" + firstEntity.tableName();
-                if (!isTableExist(helpTableName1) && !isTableExist(helpTableName2)) {
-                    String firstColumnName = firstEntity.tableName() + "_id";
-                    String secondColumnName = secondEntity.tableName() + "_id";
-                    String createTable = "CREATE TABLE " + helpTableName1 + "(" + firstColumnName + " INTEGER, " + secondColumnName + " INTEGER)";
-                    statement.executeUpdate(createTable);
-                    statement.executeUpdate(SQLBuilder.buildCreateForeignKeyRequest(firstEntity, desiredField, helpTableName1));
-                    statement.executeUpdate(SQLBuilder.buildCreateForeignKeyRequest(secondEntity, desiredField, helpTableName1));
+                String joinTableName1 = firstEntity.tableName() + "_" + secondEntity.tableName();
+                String joinTableName2 = secondEntity.tableName() + "_" + firstEntity.tableName();
+                if (!isTableExist(joinTableName1) && !isTableExist(joinTableName2)) {
+                    try {
+                        statement.executeUpdate(SQLBuilder.buildJoinTableRequest(firstEntity, secondEntity, joinTableName1));
+                        statement.executeUpdate(SQLBuilder.buildForeignKeyRequest(firstEntity, desiredField, joinTableName1));
+                        statement.executeUpdate(SQLBuilder.buildForeignKeyRequest(secondEntity, desiredField, joinTableName1));
+                    } catch (SQLException e) {
+                        e.printStackTrace();
+                    }
                 }
-            } catch (SQLException e) {
+            }
+        }
+    }
+
+    //TODO change name method, have to do refactor
+    public static void doMagic(Entity main, Entity dependent, int id1, int id2) {
+        List<Field> fields =  main.getManyToManyFields();
+        for (Field field: fields){
+            field.setAccessible(true);
+            try {
+                List<Object> list = (List<Object>) field.get(main.getEntityObject());
+                list.add(dependent.getEntityObject());
+                field.set(main.getEntityObject(), list);
+                String joinTableName1 = main.tableName() + "_" + dependent.tableName();
+                String joinTableName2 = dependent.tableName() + "_" + main.tableName();
+                String columnName1 = main.tableName() + "_id";
+                String columnName2 = dependent.tableName() + "_id";
+                try (Statement statement = PGConnectionPool.getInstance().getConnection().createStatement()) {
+                    String requestName = "";
+                    if (isTableExist(joinTableName1)) {
+                        requestName = joinTableName1;
+                    } else if (isTableExist(joinTableName2)) {
+                        requestName = joinTableName2;
+                    }
+                    String request = "INSERT INTO " + requestName
+                            + " (" + columnName1 + ", " + columnName2 + ") "
+                            + " VALUES (" + id1 + ", " + id2 + ")";
+                    statement.executeUpdate(request);
+                }
+            } catch (IllegalAccessException | SQLException e) {
                 e.printStackTrace();
             }
         }
     }
 
-    private static Entity getEntityFromFieldName(Field field) {
+    private static Entity getEntityFromField(Field field) {
         Class dependentClassName = null;
         try {
             String fullDesiredFieldName = field.getGenericType().toString();

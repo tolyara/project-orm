@@ -34,7 +34,7 @@ public class TestSQLBuilder {
     public void methodShouldCreateDependentTableIfItIsNotExist() throws NoSuchFieldException {
         String requestTableName = new Entity(TestModel.class).tableName();
         Table.deleteEntityTable(requestTableName);
-        SQLBuilder.buildCreateForeignKeyRequest(client, Client.class.getDeclaredField("testId"));
+        SQLBuilder.buildForeignKeyRequest(client, Client.class.getDeclaredField("testId"));
         Assert.assertTrue(Table.isTableExist(requestTableName));
     }
 }

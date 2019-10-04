@@ -46,7 +46,7 @@ public final class SQLBuilder {
     }
 
 
-    public static String buildCreateForeignKeyRequest(Entity entity, Field field) {
+    public static String buildForeignKeyRequest(Entity entity, Field field) {
         ForeignKey annotation = field.getAnnotation(ForeignKey.class);
         StringBuilder SQLRequest = new StringBuilder();
         try {
@@ -69,11 +69,10 @@ public final class SQLBuilder {
         } catch (ClassNotFoundException e) {
             e.printStackTrace();
         }
-
         return SQLRequest.toString();
     }
 
-    public static String buildCreateForeignKeyRequest(Entity entity, Field field, String helpTableName) {
+    public static String buildForeignKeyRequest(Entity entity, Field field, String helpTableName) {
         ManyToMany annotation = field.getAnnotation(ManyToMany.class);
         String columnName = entity.tableName() + "_id";
         String s = annotation.onUpdate().toString();
@@ -85,6 +84,14 @@ public final class SQLBuilder {
         SQLRequest.append(" ON UPDATE ").append(annotation.onUpdate().toString()).append(" ");
         SQLRequest.append(" ON DELETE ").append(annotation.onDelete().toString()).append(" ");
         return SQLRequest.toString();
+    }
+
+    public static String buildJoinTableRequest(Entity first, Entity second, String joinTableName) {
+        String firstColumnName = first.tableName() + "_id";
+        String secondColumnName = second.tableName() + "_id";
+        String createTable = "CREATE TABLE " + joinTableName +
+                "(id serial, " + firstColumnName + " INTEGER, " + secondColumnName + " INTEGER, PRIMARY KEY (id))";
+        return createTable;
     }
 
     public static String buildFieldValuesLine(Entity entity) {

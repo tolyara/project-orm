@@ -1,12 +1,9 @@
 package demo;
 
-import java.lang.reflect.Field;
 import java.util.List;
 
 import SQL.EntityDAO;
 import demo.models.Client;
-import demo.models.ImmutableWorker;
-import demo.models.TestModel;
 import demo.models.Worker;
 import storages.Entity;
 import storages.MyConnection;
@@ -23,8 +20,8 @@ public class MainClass {
 	public static final MyConnection connection = new MyConnection(POSTGRESQL_DRIVER);
 	private static final MyConnection connectionViaConnectionPool = new MyConnection();
 
-	private static final Client CLIENT = new Client("Ivanov", "Ivan", "false");
-	private static final Client CLIENT2 = new Client(1, "333", "456", "true");
+	private static final Client CLIENT = new Client("Ivanov", "Ivan", false);
+	private static final Client CLIENT2 = new Client(1, "333", "456", true);
 
 	private static final int ITERATION_NUMBER = 10;
 
@@ -49,7 +46,7 @@ public class MainClass {
 	}
 
 	private static void doDemo() throws Exception {
-//		 Table.createTableFromEntity(new Entity(Worker.class));
+		 Table.createTableFromEntity(new Entity(Worker.class));
 		
 //		printReceivedObjects(EntityDAO.getInstance().readAllRecordsOrderedByPK((Worker.class)));
 
@@ -57,8 +54,25 @@ public class MainClass {
 //		 System.out.println(en);
 
 //		 Table.createRecordInTable(new Entity(new ImmutableWorker(12, "tes65", true, 600.5)));
-//		Table.createRecordInTable(new Entity(new Worker(12, "test9", false, 999, 9)));
+
 //		 Table.createTableFromEntity(new Entity(Client.class));
+		 Entity worker1 = new Entity(new Worker("work1", true));
+		 Entity worker2 = new Entity(new Worker("work2", true));
+		 Entity worker3 = new Entity(new Worker("work3", true));
+		 Entity client1 = new Entity(new Client("sur1", "name1", false));
+		 Entity client2 = new Entity(new Client("sur2", "name2", true));
+
+		Table.createRecordInTable(worker1);
+		Table.createRecordInTable(worker2);
+		Table.createRecordInTable(worker3);
+		Table.createRecordInTable(client1);
+		Table.createRecordInTable(client2);
+//
+//		 Table.doMagic(client1, worker2, 5, 12);
+//		 Table.doMagic(client1, worker1, 5, 11);
+//		 Table.doMagic(client1, worker3, 5, 8);
+//		 Table.doMagic(worker3, client1, 6, 10);
+//		 Table.doMagic(worker3, client2, 6, 11);
 		// Table.deleteEntityTable("worker");
 //		 EntityDAO.getInstance().updateRecordInTable(new Entity(new Worker(10, "super_test4",
 //		 false, 1000, 23)));
