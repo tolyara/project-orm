@@ -1,6 +1,8 @@
 package demo;
 
 import java.lang.reflect.Field;
+import java.sql.Date;
+import java.time.LocalDate;
 import java.util.List;
 
 import SQL.EntityDAO;
@@ -30,6 +32,7 @@ public class MainClass {
 
 	public static void main(String[] args) throws Exception {
 
+		//fillTables();
 		printHeader();
 		doDemo();
 		closeResources();
@@ -53,8 +56,11 @@ public class MainClass {
 		// Table.createTableFromEntity(new Entity(Worker.class));
 
 
+
 		List<Entity> entities = EntityDAO.getInstance().readAllRecordsOrderedByPK(new Entity(Worker.class));
-		Entity entity = EntityDAO.getInstance().selectEntityById(new Entity(Worker.class), 3);
+		entities.get(0).loadOneToOne();
+		//EntityDAO.getInstance().createRecordInTable(new Entity(new Worker("test", false, 1)));
+		//Entity entity = EntityDAO.getInstance().selectEntityById(new Entity(Worker.class), 3);
 		System.out.println("");
 		//printReceivedObjects(EntityDAO.getInstance().readAllRecordsOrderedByPK(new Entity(Worker.class)));
 //		 Table.createTableFromEntity(new Entity(Worker.class));
@@ -71,6 +77,22 @@ public class MainClass {
 //		 EntityDAO.getInstance().updateRecordInTable(new Entity(new Worker(10, "super_test4",
 //		 false, 1000, 23)));
 //		 EntityDAO.getInstance().deleteRecordInTableByPK(new Entity(new Worker(10)));
+	}
+
+	private static void fillTables()
+	{
+		Client client;
+		Worker worker;
+
+		for(int i = 0; i < 20; i++){
+			TestModel testModel = new TestModel("field " + i, new Date(System.currentTimeMillis()));
+			EntityDAO.getInstance().createRecordInTable(new Entity(testModel));
+			client = new Client("surname " + i, "name" + i,"false", i);
+			EntityDAO.getInstance().createRecordInTable(new Entity(client));
+			worker = new Worker("surname " + i, false, 1);
+			EntityDAO.getInstance().createRecordInTable(new Entity(worker));
+		}
+
 	}
 
 	private static void printReceivedObjects(List<Object> objects)

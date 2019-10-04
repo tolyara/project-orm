@@ -52,7 +52,7 @@ public final class SQLBuilder {
         try {
             String name = "demo.models." + annotation.entity();
             Entity entityRequest = new Entity(Class.forName(name));
-            String requestTableName = entityRequest.tableName();
+            String requestTableName = entityRequest.getModelAnnotation().tableName();
 
             if (!Table.isTableExist(requestTableName)) {
                 Table.createTableFromEntity(entityRequest);

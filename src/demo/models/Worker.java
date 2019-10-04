@@ -1,9 +1,6 @@
 package demo.models;
 
-import annotations.Column;
-import annotations.ManyToMany;
-import annotations.Model;
-import annotations.PrimaryKey;
+import annotations.*;
 
 import java.util.List;
 
@@ -24,9 +21,11 @@ public class Worker {
 	private double salary;
 	
 	private int someFieldWithoutAnnotation;
-
-	@ManyToMany
-	private List<Client> clients;
+	@Column(fieldName = "ent_id")
+	@ForeignKey(entity = "Ent", column = "id")
+	int ent_id;
+	@OneToOne(field = "ent_id")
+	Ent ent;
 
 	public Worker(int id, String surname, boolean address) {
 		super();
@@ -54,10 +53,11 @@ public class Worker {
 		this.salary = salary;
 	}
 
-	public Worker(String surname, boolean address) {
+	public Worker(String surname, boolean address, int ent_id) {
 		super();
 		this.surname = surname;
 		this.hasAddress = address;
+		this.ent_id = ent_id;
 	}
 	
 	

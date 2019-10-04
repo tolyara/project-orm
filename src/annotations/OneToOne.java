@@ -10,8 +10,8 @@ import java.lang.annotation.Target;
 @Target(ElementType.FIELD)
 @Retention(RetentionPolicy.RUNTIME)
 public @interface OneToOne {
-    String table();
-    String column();
+    String field();
+
 
     Actions onUpdate() default Actions.NOACTION;
     Actions onDelete() default Actions.NOACTION;

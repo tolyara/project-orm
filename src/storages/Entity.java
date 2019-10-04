@@ -179,8 +179,9 @@ public class Entity {
 
 
                 field.setAccessible(true);
-                Field keyIndex = entityClass.getDeclaredField(field.getAnnotation(OneToOne.class).column());
+                Field keyIndex = entityClass.getDeclaredField(field.getAnnotation(OneToOne.class).field());
                 keyIndex.setAccessible(true);
+
                 int index = Integer.parseInt(keyIndex.get(entityObject).toString());
                 Entity test = (Entity)EntityDAO.getInstance().selectEntityById(new Entity(field.getType()),index);
                 field.set(entityObject, test.entityObject);
