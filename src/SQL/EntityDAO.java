@@ -73,67 +73,65 @@ public class EntityDAO {
 		return flag;
 	}
 
-	public List<Object> readAllRecordsOrderedByPK(Class<?> entityClass) {
+	public List<Entity> readAllRecordsOrderedByPK(Entity entity) {
 
-		Model modelAnnotation = (Model) entityClass.getAnnotation(Model.class);
-		final String TABLE_NAME = modelAnnotation.tableName();
-		String PK_NAME = modelAnnotation.primaryKey();
+		//Model modelAnnotation = (Model) entityClass.getAnnotation(Model.class);
+		final String TABLE_NAME = entity.tableName();
+		String PK_NAME = entity.primaryKey();
 
 		final String QUERY_READ_FROM_TABLE = "SELECT * FROM " + TABLE_NAME + " ORDER BY " + PK_NAME + ";";
 
-		List<Object> objects = new ArrayList<>();
+		List<Entity> entities = new ArrayList<>();
 
 		try (final Statement statement = connection.createStatement();
 				final ResultSet resultSet = statement.executeQuery(QUERY_READ_FROM_TABLE)) {
 			while (resultSet.next()) {
-				//todo ???
-				Object object = getNewInstance(entityClass);
-				object = setFieldsValue(entityClass, resultSet, PK_NAME);
-				objects.add(object);
+				Entity en = setFieldsValue(entity, resultSet, PK_NAME);
+				entities.add(en);
 			}
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
-		return objects;
+		return entities;
 	}
 
-	public Object selectEntityById(Class<?> entity, int id) {
+	public Entity selectEntityById(Entity entity, int id) {
 
-		Model modelAnnotation = (Model) entity.getAnnotation(Model.class);
-		final String TABLE_NAME = modelAnnotation.tableName();
-		String PK_NAME = modelAnnotation.primaryKey();
-		Object object = new Object();
+		final String TABLE_NAME = entity.tableName();
+		String PK_NAME = entity.primaryKey();
+		Entity localEntity = new Entity(entity);
 
 		String QUERY_SELECT_BY_ID = "SELECT * FROM " + TABLE_NAME + " WHERE " + PK_NAME + " = " + id;
 		try (final Statement statement = connection.createStatement();
 				final ResultSet resultSet = statement.executeQuery(QUERY_SELECT_BY_ID)) {
 			resultSet.next();
-			object = setFieldsValue(entity, resultSet, PK_NAME);
+			localEntity = setFieldsValue(entity, resultSet, PK_NAME);
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
-		return object;
+		return localEntity;
 	}
 
-	private Object setFieldsValue(Class<?> entityClass, ResultSet resultSet, String primaryKey) throws SQLException {
-		Object object = getNewInstance(entityClass);
+	private Entity setFieldsValue(Entity entity, ResultSet resultSet, String primaryKey) throws SQLException {
+		Entity localEntity = new Entity(entity.getEntityClass());
 		try {
-			for (Field parsedField : entityClass.getDeclaredFields()) {
+			for (Field parsedField : entity.getEntityClass().getDeclaredFields()) {
 				parsedField.setAccessible(true);
 				if (parsedField.isAnnotationPresent(PrimaryKey.class)) {
-					parsedField.set(object, resultSet.getInt(primaryKey));
+					parsedField.set(localEntity.getEntityObject(), resultSet.getInt(primaryKey));
 				} else if (parsedField.isAnnotationPresent(Column.class)) {
 					final String COLUMN_NAME = parsedField.getAnnotation(Column.class).fieldName();
-					parsedField.set(object, resultSet.getObject(COLUMN_NAME));
+					parsedField.set(localEntity.getEntityObject(), resultSet.getObject(COLUMN_NAME));
 				}
 			}
 		} catch (IllegalArgumentException | IllegalAccessException e) {
 			e.printStackTrace();
 
 		}
-		return object;
+		return localEntity;
 	}
 
+@Deprecated
 	private Object getNewInstance(Class<?> entityClass) {
 		Object o = null;
 		try {

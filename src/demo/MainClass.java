@@ -46,9 +46,18 @@ public class MainClass {
 	}
 
 	private static void doDemo() throws Exception {
+<<<<<<< HEAD
 		 Table.createTableFromEntity(new Entity(Worker.class));
 		
 //		printReceivedObjects(EntityDAO.getInstance().readAllRecordsOrderedByPK((Worker.class)));
+=======
+		// Table.createTableFromEntity(new Entity(Worker.class));
+
+		List<Entity> entities = EntityDAO.getInstance().readAllRecordsOrderedByPK(new Entity(Worker.class));
+		Entity entity = EntityDAO.getInstance().selectEntityById(new Entity(Worker.class), 3);
+		System.out.println("");
+		//printReceivedObjects(EntityDAO.getInstance().readAllRecordsOrderedByPK(new Entity(Worker.class)));
+>>>>>>> b3831c6f0b598fa5bab7f742769d753379e0e137
 
 //		 Object en = EntityDAO.getInstance().selectEntityById(Worker.class, 7);
 //		 System.out.println(en);
