@@ -97,6 +97,7 @@ public class Table {
 
     }
 
+    //todo refactor
     private static void createManyToOneDependency(Entity entity) {
         StringBuilder SQLRequest = new StringBuilder();
 

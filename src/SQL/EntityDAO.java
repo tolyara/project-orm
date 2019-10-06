@@ -101,6 +101,7 @@ public class EntityDAO {
 				final ResultSet resultSet = statement.executeQuery(QUERY_SELECT_BY_ID)) {
 			resultSet.next();
 			localEntity = setFieldsValue(entity, resultSet, PK_NAME);
+			localEntity.loadForeignKeys();
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}

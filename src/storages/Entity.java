@@ -5,6 +5,10 @@ import annotations.*;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -24,9 +28,9 @@ public class Entity {
 
             try {
                 this.entityObject = entityClass.newInstance();
-                if (!Table.isTableExist(this.getModelAnnotation().tableName()))
+                if (!Table.isTableExist(this.getModelAnnotation().tableName().toLowerCase()))
                     Table.createTableFromEntity(this);
-                loadForeignKeys();
+                //loadForeignKeys();
             } catch (IllegalAccessException e) {
                 e.printStackTrace();
             } catch (InstantiationException e) {
@@ -43,7 +47,7 @@ public class Entity {
             entityObject = object;
             if (!Table.isTableExist(this.getModelAnnotation().tableName()))
                 Table.createTableFromEntity(this);
-			loadForeignKeys();
+			//loadForeignKeys();
 
 		} else {
             // TODO exception
@@ -53,6 +57,7 @@ public class Entity {
     public void loadForeignKeys() {
         try {
             loadOneToOne();
+            loadManyToOne();
         } catch (IllegalAccessException e) {
             e.printStackTrace();
         }
@@ -171,7 +176,7 @@ public class Entity {
         // comma
     }
 
-    public void loadOneToOne() throws IllegalAccessException {
+    private void loadOneToOne() throws IllegalAccessException {
 
         for (Field field : entityClass.getDeclaredFields()) {
             if (field.getAnnotation(OneToOne.class) != null) {
@@ -187,6 +192,36 @@ public class Entity {
         }
 
     }
+
+    private void loadManyToOne() throws IllegalAccessException {
+
+        for (Field field : entityClass.getDeclaredFields()) {
+            if (field.getAnnotation(ManyToOne.class) != null) {
+
+                if (!Table.isTableExist(new Entity(field.getType()).tableName())) {
+                    Table.createTableFromEntity(new Entity(field.getType()));
+                }
+                field.setAccessible(true);
+                //todo refactor
+
+                try (final Statement statement = PGConnectionPool.getInstance().getConnection().createStatement();
+                     final ResultSet resultSet = statement.executeQuery("SELECT * FROM " + getModelAnnotation().tableName() + " WHERE " + primaryKey() + " = " + getPrimaryKeyValue())) {
+                     if(resultSet.next()){
+                         Entity localEntity = EntityDAO.getInstance().selectEntityById(new Entity(field.getType()), resultSet.getInt(field.getAnnotation(ManyToOne.class).joinColumn()));
+                         field.set(entityObject, localEntity.entityObject);
+                     }
+
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+
+
+            }
+
+        }
+    }
+
+
 
     public Model getModelAnnotation() {
         return (Model) entityClass.getAnnotation(Model.class);
