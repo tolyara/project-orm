@@ -2,16 +2,22 @@ package demo;
 
 import java.lang.reflect.Field;
 import java.sql.Date;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.List;
 
 import SQL.EntityDAO;
+import SQL.SQLBuilder;
+import demo.fk_models.Student;
+import demo.fk_models.Teacher;
 import demo.models.Client;
 import demo.models.ImmutableWorker;
 import demo.models.TestModel;
 import demo.models.Worker;
 import storages.Entity;
 import storages.MyConnection;
+import storages.PGConnectionPool;
 import storages.Table;
 import transactions.Transaction;
 
@@ -55,10 +61,16 @@ public class MainClass {
 
 		// Table.createTableFromEntity(new Entity(Worker.class));
 
+		try (final PreparedStatement statement = PGConnectionPool.getInstance().getConnection().prepareStatement("DROP TABLE student,teacher")) {
+			statement.executeUpdate();
 
-
-		List<Entity> entities = EntityDAO.getInstance().readAllRecordsOrderedByPK(new Entity(Worker.class));
-		entities.get(0).loadOneToOne();
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+        Entity student = new Entity(Student.class);
+        Entity teacher = new Entity(Teacher.class);
+		//List<Entity> entities = EntityDAO.getInstance().readAllRecordsOrderedByPK(new Entity(Worker.class));
+		//entities.get(0).loadOneToOne();
 		//EntityDAO.getInstance().createRecordInTable(new Entity(new Worker("test", false, 1)));
 		//Entity entity = EntityDAO.getInstance().selectEntityById(new Entity(Worker.class), 3);
 		System.out.println("");

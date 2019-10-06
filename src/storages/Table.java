@@ -2,12 +2,12 @@ package storages;
 
 import SQL.EntityDAO;
 import SQL.SQLBuilder;
-import annotations.ManyToMany;
+import annotations.Column;
+import annotations.ManyToOne;
 
 import java.lang.reflect.Field;
 import java.sql.*;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 /*
@@ -33,7 +33,7 @@ public class Table {
                         statement.executeUpdate(SQLBuilder.buildCreateForeignKeyRequest(entity, field));
                     }
                 }
-
+                createManyToOneDependency(entity);
                 createManyToManyDependency(entity, statement);
 
                 flag = true;
@@ -95,6 +95,46 @@ public class Table {
 //        objects = EntityDAO.getInstance().readAllRecordsOrderedByPK(entity);
         return objects;
 
+    }
+
+    private static void createManyToOneDependency(Entity entity) {
+        StringBuilder SQLRequest = new StringBuilder();
+
+        for (Field field : entity.getEntityObject().getClass().getDeclaredFields()) {
+            if (field.isAnnotationPresent(ManyToOne.class)) {
+
+
+                try {
+                    Entity entityRequest = new Entity(Class.forName(field.getType().getName()));
+                    if(!Table.isTableExist(entityRequest.tableName()))
+                        Table.createTableFromEntity(entityRequest);
+                    //alter parent table id column to child table
+                    try (final PreparedStatement statement = getConnection().prepareStatement(SQLBuilder.alterIntFieldLine(entity.getModelAnnotation().tableName(), entityRequest.getModelAnnotation().tableName() + "_id"))) {
+                        statement.executeUpdate();
+
+                    } catch (SQLException e) {
+                        e.printStackTrace();
+                    }
+                    //create fk from child to parent by id
+                    SQLRequest.append("ALTER TABLE ").append(entity.tableName()).append(" ADD CONSTRAINT ");
+                    SQLRequest.append("fk_").append(entity.tableName()).append("_").append(field.getName());
+                    SQLRequest.append(" FOREIGN KEY ");
+                    SQLRequest.append("(").append(field.getAnnotation(ManyToOne.class).joinColumn()).append(")");
+                    SQLRequest.append(" REFERENCES ").append(entityRequest.getModelAnnotation().tableName()).append(" ");
+                    SQLRequest.append("(").append(entityRequest.getModelAnnotation().primaryKey()).append(")");
+                    SQLRequest.append(" ON UPDATE ").append(field.getAnnotation(ManyToOne.class).onUpdate().toString()).append(" ");
+                    SQLRequest.append(" ON DELETE ").append(field.getAnnotation(ManyToOne.class).onDelete().toString()).append(" ");
+                } catch (ClassNotFoundException e) {
+                    e.printStackTrace();
+                }
+                try (final PreparedStatement statement = getConnection().prepareStatement(SQLRequest.toString())) {
+                    statement.executeUpdate();
+
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
     }
 
     private static void createManyToManyDependency(Entity firstEntity, Statement statement) {

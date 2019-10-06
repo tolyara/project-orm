@@ -45,12 +45,16 @@ public final class SQLBuilder {
         return fieldLine.toString();
     }
 
+    public static String alterIntFieldLine(String tableName, String idName)
+    {
+        return "ALTER TABLE " + tableName + " add " + idName + " INT;" ;
+    }
 
     public static String buildCreateForeignKeyRequest(Entity entity, Field field) {
         ForeignKey annotation = field.getAnnotation(ForeignKey.class);
         StringBuilder SQLRequest = new StringBuilder();
         try {
-            String name = "demo.models." + annotation.entity();
+            String name = "demo.models." + annotation.entity();            //todo fix this line
             Entity entityRequest = new Entity(Class.forName(name));
             String requestTableName = entityRequest.getModelAnnotation().tableName();
 
@@ -86,6 +90,7 @@ public final class SQLBuilder {
         SQLRequest.append(" ON DELETE ").append(annotation.onDelete().toString()).append(" ");
         return SQLRequest.toString();
     }
+
 
     public static String buildFieldValuesLine(Entity entity) {
         StringBuilder valuesLine = new StringBuilder();
