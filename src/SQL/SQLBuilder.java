@@ -58,6 +58,7 @@ public final class SQLBuilder {
                 Table.createTableFromEntity(entityRequest);
             }
 
+            //todo strings to constants
             SQLRequest.append("ALTER TABLE ").append(entity.tableName()).append(" ADD CONSTRAINT ");
             SQLRequest.append("fk_").append(entity.tableName()).append("_").append(field.getName());
             SQLRequest.append(" FOREIGN KEY ");

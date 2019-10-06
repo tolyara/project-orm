@@ -131,6 +131,7 @@ public class Table {
                 List<Object> list = (List<Object>) field.get(main.getEntityObject());
                 list.add(dependent.getEntityObject());
                 field.set(main.getEntityObject(), list);
+                //todo also rename
                 String joinTableName1 = main.tableName() + "_" + dependent.tableName();
                 String joinTableName2 = dependent.tableName() + "_" + main.tableName();
                 String columnName1 = main.tableName() + "_id";
