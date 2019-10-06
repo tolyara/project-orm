@@ -24,7 +24,7 @@ public class Worker {
 	@Column(fieldName = "ent_id")
 	@ForeignKey(entity = "Ent", column = "id")
 	int ent_id;
-	@OneToOne(field = "ent_id")
+	@OneToOne
 	Ent ent;
 
 	public Worker(int id, String surname, boolean address) {

@@ -1,16 +1,11 @@
 package storages;
 
 import SQL.EntityDAO;
-
 import annotations.*;
 
-import annotations.OneToOne;
-import annotations.Model;
 import java.lang.annotation.Annotation;
-import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 /*
@@ -19,199 +14,202 @@ import java.util.List;
 
 public class Entity {
 
-	private Class<?> entityClass;
-	private Object entityObject;
+    private Class<?> entityClass;
+    private Object entityObject;
 
 
+    public Entity(Class entityClass) {
+        if (entityClass.getAnnotation(Model.class) != null) {
+            this.entityClass = entityClass;
 
+            try {
+                this.entityObject = entityClass.newInstance();
+                if (!Table.isTableExist(this.getModelAnnotation().tableName()))
+                    Table.createTableFromEntity(this);
+                loadForeignKeys();
+            } catch (IllegalAccessException e) {
+                e.printStackTrace();
+            } catch (InstantiationException e) {
+                e.printStackTrace();
+            }
+        } else {
+            // TODO exception
+        }
+    }
 
-	public Entity(Class entityClass) {
-		if (entityClass.getAnnotation(Model.class) != null) {
-			this.entityClass = entityClass;
+    public Entity(Object object) {
+        if (object.getClass().getAnnotation(Model.class) != null) {
+            this.entityClass = object.getClass();
+            entityObject = object;
+            if (!Table.isTableExist(this.getModelAnnotation().tableName()))
+                Table.createTableFromEntity(this);
+			loadForeignKeys();
 
-			try {
-				this.entityObject = entityClass.newInstance();
-				if(!Table.isTableExist(this.getModelAnnotation().tableName()))
-					Table.createTableFromEntity(this);
-			} catch (IllegalAccessException e) {
-				e.printStackTrace();
-			} catch (InstantiationException e) {
-				e.printStackTrace();
-			}
 		} else {
-			// TODO exception
-		}
-	}
+            // TODO exception
+        }
+    }
 
-	public Entity(Object object) {
-		if (object.getClass().getAnnotation(Model.class) != null) {
-			this.entityClass = object.getClass();
-			entityObject = object;
-			if(!Table.isTableExist(this.getModelAnnotation().tableName()))
-				Table.createTableFromEntity(this);
-		} else {
-			// TODO exception
-		}
-	}
+    public void loadForeignKeys() {
+        try {
+            loadOneToOne();
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        }
+    }
 
+    public List<String> getFieldsNames() {
+        List<String> nameFields = new ArrayList<>();
+        for (Field field : entityClass.getDeclaredFields()) {
+            if (field.isAnnotationPresent(Column.class)) {
+                nameFields.add(field.getAnnotation(Column.class).fieldName());
+            }
+        }
+        return nameFields;
+    }
 
-	public List<String> getFieldsNames() {
-		List<String> nameFields = new ArrayList<>();
-		for (Field field : entityClass.getDeclaredFields()) {
-			if (field.isAnnotationPresent(Column.class)) {
-				nameFields.add(field.getAnnotation(Column.class).fieldName());
-			}
-		}
-		return nameFields;
-	}
+    public List<String> getFieldTypes() {
+        List<String> typesFields = new ArrayList<>();
+        for (Field field : entityClass.getDeclaredFields()) {
+            if (field.isAnnotationPresent(Column.class)) {
+                typesFields.add(field.getType().getSimpleName());
+            }
+        }
+        return typesFields;
+    }
 
-	public List<String> getFieldTypes() {
-		List<String> typesFields = new ArrayList<>();
-		for (Field field : entityClass.getDeclaredFields()) {
-			if (field.isAnnotationPresent(Column.class)) {
-				typesFields.add(field.getType().getSimpleName());
-			}
-		}
-		return typesFields;
-	}
+    public List<Field> getForeignKeyFields() {
+        List<Field> foreignKeys = new ArrayList<>();
+        for (Field field : entityClass.getDeclaredFields()) {
+            if (field.isAnnotationPresent(ForeignKey.class)) {
+                foreignKeys.add(field);
+            }
+        }
+        return foreignKeys;
+    }
 
-	public List<Field> getForeignKeyFields() {
-		List<Field> foreignKeys = new ArrayList<>();
-		for (Field field : entityClass.getDeclaredFields()) {
-			if (field.isAnnotationPresent(ForeignKey.class)) {
-				foreignKeys.add(field);
-			}
-		}
-		return foreignKeys;
-	}
+    public List<Field> getManyToManyFields() {
+        List<Field> fieldsWithAnnotation = new ArrayList<>();
+        for (Field f : entityClass.getDeclaredFields()) {
+            if (f.isAnnotationPresent(ManyToMany.class)) {
+                fieldsWithAnnotation.add(f);
+            }
+        }
+        return fieldsWithAnnotation;
+    }
 
-	public List<Field> getManyToManyFields() {
-		List<Field> fieldsWithAnnotation = new ArrayList<>();
-		for (Field f : entityClass.getDeclaredFields()){
-			if (f.isAnnotationPresent(ManyToMany.class)){
-				fieldsWithAnnotation.add(f);
-			}
-		}
-		return fieldsWithAnnotation;
-	}
+    public Integer getPrimaryKeyValue() {
+        Integer value = 0;
+        for (Field column : getEntityClass().getDeclaredFields()) {
+            if (column.isAnnotationPresent(PrimaryKey.class)) {
+                // final String COLUMN_NAME = column.getAnnotation(Column.class).fieldName();
 
-	public Integer getPrimaryKeyValue() {
-		Integer value = 0;
-		for (Field column : getEntityClass().getDeclaredFields()) {
-			if (column.isAnnotationPresent(PrimaryKey.class)) {
-				// final String COLUMN_NAME = column.getAnnotation(Column.class).fieldName();
+                // final String COLUMN_NAME = primaryKey();
 
-				// final String COLUMN_NAME = primaryKey();
+                try {
 
-				try {
+                    // if (COLUMN_NAME.toLowerCase().equals(primaryKey())) {
+                    // try {
+                    column.setAccessible(true);
+                    value = ((Integer) column.get(getEntityObject()));
+                } catch (IllegalArgumentException | IllegalAccessException | SecurityException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+        return value;
+    }
 
-					// if (COLUMN_NAME.toLowerCase().equals(primaryKey())) {
-					// try {
-					column.setAccessible(true);
-					value = ((Integer) column.get(getEntityObject()));
-				} catch (IllegalArgumentException | IllegalAccessException | SecurityException e) {
-					e.printStackTrace();
-				}
-			}
-		}
-		return value;
-	}
+    /*
+     * Return line with entity fields toLowerCase comma separated without PK
+     */
+    public String getParsedFieldsLine() {
+        StringBuilder parsedFields = new StringBuilder();
 
-	/*
-	 * Return line with entity fields toLowerCase comma separated without PK
-	 */
-	public String getParsedFieldsLine() {
-		StringBuilder parsedFields = new StringBuilder();
+        for (Field parsedField : entityClass.getDeclaredFields()) {
+            if (parsedField.isAnnotationPresent(Column.class)) {
+                final String COLUMN_NAME = parsedField.getAnnotation(Column.class).fieldName();
+                // if (!COLUMN_NAME.toLowerCase().equals(primaryKey())) { /* skip field that is
+                // PK */
+                try {
+                    parsedFields.append(COLUMN_NAME.toLowerCase() + ", ");
+                } catch (IllegalArgumentException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+        return parsedFields.toString().trim().substring(0, parsedFields.toString().length() - 2); // return with delete
+        // last comma
+    }
 
-		for (Field parsedField : entityClass.getDeclaredFields()) {
-			if (parsedField.isAnnotationPresent(Column.class)) {
-				final String COLUMN_NAME = parsedField.getAnnotation(Column.class).fieldName();
-				// if (!COLUMN_NAME.toLowerCase().equals(primaryKey())) { /* skip field that is
-				// PK */
-				try {
-					parsedFields.append(COLUMN_NAME.toLowerCase() + ", ");
-				} catch (IllegalArgumentException e) {
-					e.printStackTrace();
-				}
-			}
-		}
-		return parsedFields.toString().trim().substring(0, parsedFields.toString().length() - 2); // return with delete
-																									// last comma
-	}
+    /*
+     * Return line with entity values of fields toLowerCase comma separated without
+     * PK
+     */
+    public String getParsedValuesLine() {
 
-	/*
-	 * Return line with entity values of fields toLowerCase comma separated without
-	 * PK
-	 */
-	public String getParsedValuesLine() {
+        StringBuilder preparedValues = new StringBuilder();
 
-		StringBuilder preparedValues = new StringBuilder();
+        for (Field parsedField : entityClass.getDeclaredFields()) {
+            if (parsedField.isAnnotationPresent(Column.class)) {
+                final String COLUMN_NAME = parsedField.getAnnotation(Column.class).fieldName();
+                // if (!COLUMN_NAME.toLowerCase().equals(primaryKey())) { /* skip field that is
+                // PK */
+                try {
+                    parsedField.setAccessible(true);
+                    /* getting value that we need to push */
+                    Object fieldValue = (Object) parsedField.get(entityObject);
+                    preparedValues.append("'" + fieldValue + "'" + ", ");
+                } catch (IllegalArgumentException | IllegalAccessException | ClassCastException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
 
-		for (Field parsedField : entityClass.getDeclaredFields()) {
-			if (parsedField.isAnnotationPresent(Column.class)) {
-				final String COLUMN_NAME = parsedField.getAnnotation(Column.class).fieldName();
-				// if (!COLUMN_NAME.toLowerCase().equals(primaryKey())) { /* skip field that is
-				// PK */
-				try {
-					parsedField.setAccessible(true);
-					/* getting value that we need to push */
-					Object fieldValue = (Object) parsedField.get(entityObject);
-					preparedValues.append("'" + fieldValue + "'" + ", ");
-				} catch (IllegalArgumentException | IllegalAccessException | ClassCastException e) {
-					e.printStackTrace();
-				}
-			}
-		}
+        return preparedValues.toString().trim().substring(0, preparedValues.toString().length() - 2); // return with
+        // delete last
+        // comma
+    }
 
-		return preparedValues.toString().trim().substring(0, preparedValues.toString().length() - 2); // return with
-																										// delete last
-																										// comma
-	}
+    public void loadOneToOne() throws IllegalAccessException {
 
-    public void loadOneToOne() throws IllegalAccessException, InstantiationException, NoSuchFieldException {
+        for (Field field : entityClass.getDeclaredFields()) {
+            if (field.getAnnotation(OneToOne.class) != null) {
 
-        for(Field field : entityClass.getDeclaredFields()){
-            if(field.getAnnotation(OneToOne.class) != null){
-
-                if(!Table.isTableExist(new Entity(field.getType()).tableName())){
+                if (!Table.isTableExist(new Entity(field.getType()).tableName())) {
                     Table.createTableFromEntity(new Entity(field.getType()));
                 }
-
-
                 field.setAccessible(true);
-                Field keyIndex = entityClass.getDeclaredField(field.getAnnotation(OneToOne.class).field());
-                keyIndex.setAccessible(true);
-
-                int index = Integer.parseInt(keyIndex.get(entityObject).toString());
-                Entity test = (Entity)EntityDAO.getInstance().selectEntityById(new Entity(field.getType()),index);
-                field.set(entityObject, test.entityObject);
+                Entity localEntity = EntityDAO.getInstance().selectEntityById(new Entity(field.getType()), this.getPrimaryKeyValue());
+                field.set(entityObject, localEntity.entityObject);
             }
 
         }
 
     }
-	public Model getModelAnnotation() {
-		return (Model) entityClass.getAnnotation(Model.class);
-	}
 
-	public Class getEntityClass() {
-		return entityClass;
-	}
+    public Model getModelAnnotation() {
+        return (Model) entityClass.getAnnotation(Model.class);
+    }
 
-	public Object getEntityObject() {
-		return entityObject;
-	}
+    public Class getEntityClass() {
+        return entityClass;
+    }
 
-	public String tableName() {
-		return getModelAnnotation().tableName();
-	}
+    public Object getEntityObject() {
+        return entityObject;
+    }
 
-	public String primaryKey() {
-		return getModelAnnotation().primaryKey();
-	}
+    public String tableName() {
+        return getModelAnnotation().tableName();
+    }
 
-	public Class<? extends Annotation> annotationType() {
-		return Model.class;
-	}
-	
+    public String primaryKey() {
+        return getModelAnnotation().primaryKey();
+    }
+
+    public Class<? extends Annotation> annotationType() {
+        return Model.class;
+    }
+
 }

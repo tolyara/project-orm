@@ -1,6 +1,7 @@
 package SQL;
 
-import annotations.Model;
+import annotations.Column;
+import annotations.PrimaryKey;
 import storages.Entity;
 import storages.PGConnectionPool;
 
@@ -8,12 +9,6 @@ import java.lang.reflect.Field;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
-
-import javax.sql.rowset.CachedRowSet;
-
-import annotations.Column;
-import annotations.Model;
-import annotations.PrimaryKey;
 
 public class EntityDAO {
 
