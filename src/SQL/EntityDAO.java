@@ -82,6 +82,7 @@ public class EntityDAO {
 				final ResultSet resultSet = statement.executeQuery(QUERY_READ_FROM_TABLE)) {
 			while (resultSet.next()) {
 				Entity en = setFieldsValue(entity, resultSet, PK_NAME);
+				en.loadForeignKeys();
 				entities.add(en);
 			}
 		} catch (SQLException e) {
@@ -107,8 +108,8 @@ public class EntityDAO {
 		}
 		return localEntity;
 	}
-
-	private Entity setFieldsValue(Entity entity, ResultSet resultSet, String primaryKey) throws SQLException {
+	//todo remove public static
+	public static Entity setFieldsValue(Entity entity, ResultSet resultSet, String primaryKey) throws SQLException {
 		Entity localEntity = new Entity(entity.getEntityClass());
 		try {
 			for (Field parsedField : entity.getEntityClass().getDeclaredFields()) {

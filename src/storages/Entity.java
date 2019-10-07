@@ -5,12 +5,15 @@ import annotations.*;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
+import java.lang.reflect.ParameterizedType;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /*
  * Class for reflection methods
@@ -58,7 +61,12 @@ public class Entity {
         try {
             loadOneToOne();
             loadManyToOne();
+            loadOneToMany();
         } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        } catch (NoSuchFieldException e) {
+            e.printStackTrace();
+        } catch (ClassNotFoundException e) {
             e.printStackTrace();
         }
     }
@@ -221,6 +229,38 @@ public class Entity {
         }
     }
 
+
+    private void loadOneToMany() throws ClassNotFoundException, NoSuchFieldException {
+        for (Field field : entityClass.getDeclaredFields()) {
+            if (field.getAnnotation(OneToMany.class) != null) {
+                ParameterizedType type = (ParameterizedType) field.getGenericType();
+                String typeName = type.getActualTypeArguments()[0].getTypeName();
+                Entity mappedEntity = new Entity(Class.forName(typeName));
+                Field mappedField = mappedEntity.getEntityObject().getClass().getDeclaredField(field.getAnnotation(OneToMany.class).mappedBy());
+
+                Set<Entity> entities = new HashSet<>();
+
+                if(mappedField.getAnnotation(ManyToOne.class) != null) {
+
+
+                    //todo refactor
+
+                    try (final Statement statement = PGConnectionPool.getInstance().getConnection().createStatement();
+                         final ResultSet resultSet = statement.executeQuery("SELECT * FROM " + mappedEntity.getModelAnnotation().tableName() + " WHERE " + mappedField.getAnnotation(ManyToOne.class).joinColumn() +" = " + getPrimaryKeyValue())) {
+                        while (resultSet.next()) {
+                            Entity e = EntityDAO.getInstance().setFieldsValue(mappedEntity, resultSet, mappedEntity.getModelAnnotation().primaryKey());
+                            entities.add(e);
+                        }
+                        field.setAccessible(true);
+                        field.set(this.entityObject,  entities);
+                    } catch (SQLException | IllegalAccessException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        }
+
+    }
 
 
     public Model getModelAnnotation() {
