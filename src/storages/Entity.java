@@ -1,13 +1,17 @@
 package storages;
 
+import SQL.EntityDAO;
+import SQL.SQLBuilder;
 import annotations.*;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.lang.reflect.ParameterizedType;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.*;
 
 /*
  * Class for reflection methods
@@ -161,6 +165,29 @@ public class Entity {
 		return preparedValues.toString().trim().substring(0, preparedValues.toString().length() - 2); // return with
 																										// delete last
 																										// comma
+	}
+
+	public void loadManyToMany(int parentId, int... childIds) {
+		List<Field> fields = this.getManyToManyFields();
+		for (Field field: fields){
+			try {
+				Entity child = Table.getEntityFromFieldWithCollection(field);
+
+				field.setAccessible(true);
+				Collection<Object> childs = new HashSet<>();
+
+				try (final Statement statement = PGConnectionPool.getInstance().getConnection().createStatement()) {
+					for (int childId : childIds) {
+						Entity entity = EntityDAO.getInstance().selectEntityById(child, childId);
+						childs.add(entity.getEntityObject());
+						statement.executeUpdate(SQLBuilder.buildCreateRecordInJoinTableRequest(this, child, parentId, childId));
+					}
+				}
+				field.set(getEntityObject(), childs);
+			} catch (SQLException | IllegalAccessException e) {
+				e.printStackTrace();
+			}
+		}
 	}
 
 	public Model getModelAnnotation() {

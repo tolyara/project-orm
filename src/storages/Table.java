@@ -3,6 +3,7 @@ package storages;
 import SQL.EntityDAO;
 import SQL.SQLBuilder;
 import annotations.ManyToMany;
+import demo.models.Worker;
 import jdk.swing.interop.SwingInterOpUtils;
 
 import java.lang.reflect.Field;
@@ -119,36 +120,13 @@ public class Table {
                 }
                 String joinTableName = getJoinTableName(parent, child);
                 if (!isTableExist(joinTableName)) {
-                    try (Statement statement = PGConnectionPool.getInstance().getConnection().createStatement()) {
-                        statement.executeUpdate(SQLBuilder.buildJoinTableRequest(parent, child, joinTableName));
-                        statement.executeUpdate(SQLBuilder.buildForeignKeyRequest(parent, desiredField, joinTableName));
-                        statement.executeUpdate(SQLBuilder.buildForeignKeyRequest(child, desiredField, joinTableName));
-                    } catch (SQLException e) {
-                        e.printStackTrace();
-                    }
+                    executeManyToManyRequest(parent, child, desiredField, joinTableName);
                 }
             }
         }
     }
 
-    public static void loadManyToMany(Entity parent, int parentId, int... childIds) {
-        List<Field> fields =  parent.getManyToManyFields();
-        for (Field field: fields){
-            try {
-                Entity child = getEntityFromFieldWithCollection(field);
-
-                try (Statement statement = getConnection().createStatement()) {
-                    for (int childId : childIds) {
-                        statement.executeUpdate(SQLBuilder.buildCreateRecordInJoinTableRequest(parent, child, parentId, childId));
-                    }
-                }
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
-        }
-    }
-
-    private static Entity getEntityFromFieldWithCollection(Field field) {
+    public static Entity getEntityFromFieldWithCollection(Field field) {
         Class dependentClassName = null;
         try {
             String fullDesiredFieldName = field.getGenericType().toString();
@@ -170,29 +148,14 @@ public class Table {
         } else return joinTableName1;
     }
 
-    public static <T> Collection<T> getAllChilds(T object, int id) {
-        Collection<T> childs = null;
-        Entity parent = new Entity(object);
-        List<Field> fields = parent.getManyToManyFields();
-        for (Field field: fields){
-            Entity child = getEntityFromFieldWithCollection(field);
-            String joinTableName = getJoinTableName(parent, child);
-            String column1 = child.tableName() + "_id";
-            String column2 = parent.tableName() + "_id";
-            String SQL = "SELECT " + column1 + " FROM " + joinTableName + " WHERE " + column2 + " = id";
-            try (Statement statement = getConnection().createStatement()) {
-                ResultSet resultSet = statement.executeQuery(SQL);
-                List<Integer> ids = new ArrayList<>();
-                while (resultSet.next()){
-                    ids.add(resultSet.getInt(1));
-                }
-                System.out.println(ids);
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
+    private static void executeManyToManyRequest(Entity parent, Entity child, Field field, String tableName) {
+        try (final Statement statement = PGConnectionPool.getInstance().getConnection().createStatement()) {
+            statement.executeUpdate(SQLBuilder.buildJoinTableRequest(parent, child, tableName));
+            statement.executeUpdate(SQLBuilder.buildForeignKeyRequest(parent, field, tableName));
+            statement.executeUpdate(SQLBuilder.buildForeignKeyRequest(child, field, tableName));
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
-
-        return childs;
     }
 
     private static Connection getConnection() throws SQLException {

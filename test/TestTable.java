@@ -1,10 +1,8 @@
 package test;
 
 import demo.models.Client;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import demo.models.Worker;
+import org.junit.*;
 import storages.Entity;
 import storages.Table;
 
@@ -18,6 +16,7 @@ public class TestTable {
 
     @Test
     public void methodShouldReturnTrueIfTableCreated() {
+        Table.deleteEntityTable(Table.getJoinTableName(client, new Entity(Worker.class)));
         Table.deleteEntityTable(client.tableName());
         Assert.assertTrue(Table.createTableFromEntity(client));
     }
@@ -32,5 +31,12 @@ public class TestTable {
     public void methodShouldReturnTrueIfTableDeleted() {
         Table.createTableFromEntity(client);
         Assert.assertTrue(Table.deleteEntityTable(client.tableName()));
+    }
+
+    @AfterClass
+    public static void dropTables() {
+        Table.deleteEntityTable("client_worker");
+        Table.deleteEntityTable("client");
+        Table.deleteEntityTable("worker");
     }
 }

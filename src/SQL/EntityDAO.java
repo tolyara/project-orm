@@ -112,7 +112,7 @@ public class EntityDAO {
 		return localEntity;
 	}
 
-	private Entity setFieldsValue(Entity entity, ResultSet resultSet, String primaryKey) throws SQLException {
+	public Entity setFieldsValue(Entity entity, ResultSet resultSet, String primaryKey) throws SQLException {
 		Entity localEntity = new Entity(entity.getEntityClass());
 		try {
 			for (Field parsedField : entity.getEntityClass().getDeclaredFields()) {

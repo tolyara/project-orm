@@ -8,7 +8,6 @@ import storages.Entity;
 import storages.Table;
 
 import java.lang.reflect.Field;
-import java.util.Random;
 
 /*
  * Class for building SQL requests
