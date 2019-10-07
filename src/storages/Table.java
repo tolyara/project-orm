@@ -2,8 +2,8 @@ package storages;
 
 
 import annotations.ManyToOne;
-import sql.EntityDAO;
-import sql.SQLBuilder;
+import SQL.EntityDAO;
+import SQL.SQLBuilder;
 
 import java.lang.reflect.Field;
 import java.sql.*;
@@ -103,7 +103,7 @@ public class Table {
 
                 try {
                     Entity entityRequest = new Entity(Class.forName(field.getType().getName()));
-                    if(!Table.isTableExist(entityRequest.tableName()))
+                    if (!Table.isTableExist(entityRequest.tableName()))
                         Table.createTableFromEntity(entityRequest);
                     //alter parent table id column to child table
                     try (final PreparedStatement statement = getConnection().prepareStatement(SQLBuilder.alterIntFieldLine(entity.getModelAnnotation().tableName(), entityRequest.getModelAnnotation().tableName() + "_id"))) {

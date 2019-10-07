@@ -2,7 +2,7 @@ package test;
 
 import demo.models.Client;
 import demo.models.TestModel;
-import sql.SQLBuilder;
+import SQL.SQLBuilder;
 
 import org.junit.Assert;
 import org.junit.BeforeClass;

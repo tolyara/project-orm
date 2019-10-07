@@ -11,7 +11,7 @@ import demo.MainClass;
 import demo.models.ImmutableWorker;
 import demo.models.TestModel;
 import demo.models.Worker;
-import sql.EntityDAO;
+import SQL.EntityDAO;
 import storages.Entity;
 import storages.Table;
 

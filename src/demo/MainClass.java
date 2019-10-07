@@ -57,14 +57,20 @@ public class MainClass {
 		// Table.createTableFromEntity(new Entity(Worker.class));
 
 		try (final PreparedStatement statement = PGConnectionPool.getInstance().getConnection().prepareStatement("DROP TABLE student,teacher")) {
-			statement.executeUpdate();
+			//statement.executeUpdate();
 
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
         Entity student = new Entity(Student.class);
         Entity teacher = new Entity(Teacher.class);
-		//List<Entity> entities = EntityDAO.getInstance().readAllRecordsOrderedByPK(new Entity(Worker.class));
+		student = EntityDAO.getInstance().selectEntityById(student, 1);
+        teacher = EntityDAO.getInstance().selectEntityById(teacher, 1);
+
+        Teacher t = (Teacher) teacher.getEntityObject();
+        Entity e = new Entity(t.getStudent(1));
+
+        //List<Entity> entities = EntityDAO.getInstance().readAllRecordsOrderedByPK(new Entity(Worker.class));
 		//entities.get(0).loadOneToOne();
 		//EntityDAO.getInstance().createRecordInTable(new Entity(new Worker("test", false, 1)));
 		//Entity entity = EntityDAO.getInstance().selectEntityById(new Entity(Worker.class), 3);

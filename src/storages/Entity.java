@@ -10,7 +10,6 @@ import java.lang.reflect.Field;
 import java.lang.reflect.ParameterizedType;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -35,10 +34,7 @@ public class Entity {
                 this.entityObject = entityClass.newInstance();
                 if (!Table.isTableExist(this.getModelAnnotation().tableName().toLowerCase()))
                     Table.createTableFromEntity(this);
-                //loadForeignKeys();
-            } catch (IllegalAccessException e) {
-                e.printStackTrace();
-            } catch (InstantiationException e) {
+            } catch (IllegalAccessException | InstantiationException e) {
                 e.printStackTrace();
             }
         } else {
@@ -52,9 +48,7 @@ public class Entity {
             entityObject = object;
             if (!Table.isTableExist(this.getModelAnnotation().tableName()))
                 Table.createTableFromEntity(this);
-			//loadForeignKeys();
-
-		} else {
+        } else {
             // TODO exception
         }
     }
@@ -188,6 +182,9 @@ public class Entity {
 
     private void loadOneToOne() throws IllegalAccessException {
 
+        Entity localEntity;
+        Class mappedEntityClass;
+
         for (Field field : entityClass.getDeclaredFields()) {
             if (field.getAnnotation(OneToOne.class) != null) {
 
@@ -195,7 +192,8 @@ public class Entity {
                     Table.createTableFromEntity(new Entity(field.getType()));
                 }
                 field.setAccessible(true);
-                Entity localEntity = EntityDAO.getInstance().selectEntityById(new Entity(field.getType()), this.getPrimaryKeyValue());
+                mappedEntityClass = field.getType();
+                localEntity = EntityDAO.getInstance().selectEntityById(new Entity(mappedEntityClass), this.getPrimaryKeyValue());
                 field.set(entityObject, localEntity.entityObject);
             }
 
@@ -205,59 +203,49 @@ public class Entity {
 
     private void loadManyToOne() throws IllegalAccessException {
 
+        ResultSet mappedEntityResultSet;
+        Entity localEntity;
+        Class mappedEntityClass;
+
         for (Field field : entityClass.getDeclaredFields()) {
             if (field.getAnnotation(ManyToOne.class) != null) {
-
                 if (!Table.isTableExist(new Entity(field.getType()).tableName())) {
                     Table.createTableFromEntity(new Entity(field.getType()));
                 }
                 field.setAccessible(true);
-                //todo refactor
-
-                try (final Statement statement = PGConnectionPool.getInstance().getConnection().createStatement();
-                     final ResultSet resultSet = statement.executeQuery("SELECT * FROM " + getModelAnnotation().tableName() + " WHERE " + primaryKey() + " = " + getPrimaryKeyValue())) {
-                     if(resultSet.next()){
-                         Entity localEntity = EntityDAO.getInstance().selectEntityById(new Entity(field.getType()), resultSet.getInt(field.getAnnotation(ManyToOne.class).joinColumn()));
-                         field.set(entityObject, localEntity.entityObject);
-                     }
-
+                final String JOIN_COLUMN_NAME = field.getAnnotation(ManyToOne.class).joinColumn();
+                mappedEntityClass = field.getType();
+                try {
+                    mappedEntityResultSet = EntityDAO.getInstance().getEntityResultSet(this);
+                    if (mappedEntityResultSet.next()) {
+                        localEntity = EntityDAO.getInstance().selectEntityById(new Entity(mappedEntityClass), mappedEntityResultSet.getInt(JOIN_COLUMN_NAME));
+                        field.set(entityObject, localEntity.entityObject);
+                    }
                 } catch (SQLException e) {
                     e.printStackTrace();
                 }
-
-
             }
 
         }
     }
 
 
-    private void loadOneToMany() throws ClassNotFoundException, NoSuchFieldException {
+    private void loadOneToMany() throws ClassNotFoundException, NoSuchFieldException, IllegalAccessException {
+
         for (Field field : entityClass.getDeclaredFields()) {
             if (field.getAnnotation(OneToMany.class) != null) {
                 ParameterizedType type = (ParameterizedType) field.getGenericType();
                 String typeName = type.getActualTypeArguments()[0].getTypeName();
                 Entity mappedEntity = new Entity(Class.forName(typeName));
                 Field mappedField = mappedEntity.getEntityObject().getClass().getDeclaredField(field.getAnnotation(OneToMany.class).mappedBy());
+                Set<Object> entities = new HashSet<>();
 
-                Set<Entity> entities = new HashSet<>();
+                if (mappedField.getAnnotation(ManyToOne.class) != null) {
 
-                if(mappedField.getAnnotation(ManyToOne.class) != null) {
+                    entities = EntityDAO.getInstance().getMappedObjectList(this, mappedEntity, mappedField);
+                    field.setAccessible(true);
+                    field.set(this.entityObject, entities);
 
-
-                    //todo refactor
-
-                    try (final Statement statement = PGConnectionPool.getInstance().getConnection().createStatement();
-                         final ResultSet resultSet = statement.executeQuery("SELECT * FROM " + mappedEntity.getModelAnnotation().tableName() + " WHERE " + mappedField.getAnnotation(ManyToOne.class).joinColumn() +" = " + getPrimaryKeyValue())) {
-                        while (resultSet.next()) {
-                            Entity e = EntityDAO.getInstance().setFieldsValue(mappedEntity, resultSet, mappedEntity.getModelAnnotation().primaryKey());
-                            entities.add(e);
-                        }
-                        field.setAccessible(true);
-                        field.set(this.entityObject,  entities);
-                    } catch (SQLException | IllegalAccessException e) {
-                        e.printStackTrace();
-                    }
                 }
             }
         }
@@ -266,7 +254,7 @@ public class Entity {
 
 
     public Model getModelAnnotation() {
-        return (Model) entityClass.getAnnotation(Model.class);
+        return entityClass.getAnnotation(Model.class);
     }
 
     public Class getEntityClass() {
@@ -288,11 +276,12 @@ public class Entity {
     public Class<? extends Annotation> annotationType() {
         return Model.class;
     }
+
     public QuerryBuilder column(String fieldName) {
         String columnName = "";
         for (Field parsedField : entityClass.getDeclaredFields()) {
             if (parsedField.getName().equals(fieldName)) {
-                columnName = getAnnotationAttrubite(parsedField);
+                columnName = getAnnotationAttribute(parsedField);
             } else {
 
             }
@@ -300,12 +289,11 @@ public class Entity {
         return new QuerryBuilder(columnName);
     }
 
-    private String getAnnotationAttrubite(Field parsedField) {
+    private String getAnnotationAttribute(Field parsedField) {
         String columnName = "";
         if (parsedField.isAnnotationPresent(PrimaryKey.class)) {
             columnName = this.primaryKey();
-        }
-        else {
+        } else {
             columnName = parsedField.getAnnotation(Column.class).fieldName();
         }
         return columnName;
