@@ -1,5 +1,6 @@
 package demo;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -80,10 +81,10 @@ public class MainClass {
 		Table.createRecordInTable(client2);
 
 		Table.loadManyToMany(worker1, 1, 1 , 2);
+		Table.getAllChilds(objWorker1, 1);
 		Table.loadManyToMany(worker3, 3, 1, 2);
 		Table.loadManyToMany(client1, 1, 1, 2, 3);
 		Table.loadManyToMany(client2, 2, 1, 3);
-
 
 		// Table.deleteEntityTable("worker");
 //		 EntityDAO.getInstance().updateRecordInTable(new Entity(new Worker(10, "super_test4",

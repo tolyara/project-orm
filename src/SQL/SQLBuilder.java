@@ -77,10 +77,9 @@ public final class SQLBuilder {
     public static String buildForeignKeyRequest(Entity entity, Field field, String joinTableName) {
         ManyToMany annotation = field.getAnnotation(ManyToMany.class);
         String columnName = entity.tableName() + "_id";
-        long hash = new Random().nextLong();
         StringBuilder SQLRequest = new StringBuilder();
         SQLRequest.append("ALTER TABLE ").append(joinTableName).append(" ADD CONSTRAINT ");
-        SQLRequest.append("fk_").append(hash);
+        SQLRequest.append("fk_").append(columnName).append(joinTableName);
         SQLRequest.append(" FOREIGN KEY (").append(columnName).append(")");
         SQLRequest.append(" REFERENCES ").append(entity.tableName()).append(" ").append("(id)");
         SQLRequest.append(" ON UPDATE ").append(annotation.onUpdate().toString()).append(" ");

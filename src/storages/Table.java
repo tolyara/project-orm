@@ -3,6 +3,7 @@ package storages;
 import SQL.EntityDAO;
 import SQL.SQLBuilder;
 import annotations.ManyToMany;
+import jdk.swing.interop.SwingInterOpUtils;
 
 import java.lang.reflect.Field;
 import java.sql.*;
@@ -135,11 +136,8 @@ public class Table {
         for (Field field: fields){
             try {
                 Entity child = getEntityFromFieldWithCollection(field);
-                /*field.setAccessible(true);
-                Set<Object> set = (Set<Object>) field.get(parent.getEntityObject());
-                set.add(child.getEntityObject());
-                field.set(parent.getEntityObject(), set);*/
-                try (Statement statement = PGConnectionPool.getInstance().getConnection().createStatement()) {
+
+                try (Statement statement = getConnection().createStatement()) {
                     for (int childId : childIds) {
                         statement.executeUpdate(SQLBuilder.buildCreateRecordInJoinTableRequest(parent, child, parentId, childId));
                     }
@@ -172,8 +170,27 @@ public class Table {
         } else return joinTableName1;
     }
 
-    public static <T> Collection<T> getAllChilds(T object) {
+    public static <T> Collection<T> getAllChilds(T object, int id) {
         Collection<T> childs = null;
+        Entity parent = new Entity(object);
+        List<Field> fields = parent.getManyToManyFields();
+        for (Field field: fields){
+            Entity child = getEntityFromFieldWithCollection(field);
+            String joinTableName = getJoinTableName(parent, child);
+            String column1 = child.tableName() + "_id";
+            String column2 = parent.tableName() + "_id";
+            String SQL = "SELECT " + column1 + " FROM " + joinTableName + " WHERE " + column2 + " = id";
+            try (Statement statement = getConnection().createStatement()) {
+                ResultSet resultSet = statement.executeQuery(SQL);
+                List<Integer> ids = new ArrayList<>();
+                while (resultSet.next()){
+                    ids.add(resultSet.getInt(1));
+                }
+                System.out.println(ids);
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
 
         return childs;
     }
