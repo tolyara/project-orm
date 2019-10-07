@@ -1,11 +1,14 @@
 package demo.models;
 
-import annotations.*;
-import storages.Actions;
+import annotations.Column;
+import annotations.ManyToMany;
+import annotations.Model;
+import annotations.PrimaryKey;
 
-import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 
 @Model(tableName = "client", primaryKey = "id")
 public class Client {
@@ -27,7 +30,7 @@ public class Client {
 	private int testId;*/
 
 	@ManyToMany(table = "worker")
-	private List<Worker> workers = new ArrayList<>();
+	private Set<Worker> workers = new HashSet<>();
 
 	public Client() {
 
@@ -63,11 +66,11 @@ public class Client {
 		this.testId = testId;
 	}*/
 
-    public List<Worker> getWorkers() {
+    public Set<Worker> getWorkers() {
         return workers;
     }
 
-    public void setWorkers(List<Worker> workers) {
+    public void setWorkers(Set<Worker> workers) {
         this.workers = workers;
     }
 
@@ -91,4 +94,15 @@ public class Client {
     public int hashCode() {
         return Objects.hash(id, surname, name, isGirl, workers);
     }
+
+	@Override
+	public String toString() {
+		return "Client{" +
+				"id=" + id +
+				", surname='" + surname + '\'' +
+				", name='" + name + '\'' +
+				", isGirl=" + isGirl +
+				", workers=" + workers +
+				'}';
+	}
 }

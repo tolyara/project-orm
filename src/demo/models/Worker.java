@@ -5,9 +5,7 @@ import annotations.ManyToMany;
 import annotations.Model;
 import annotations.PrimaryKey;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 @Model(tableName = "worker", primaryKey = "id")
 public class Worker {
@@ -27,7 +25,7 @@ public class Worker {
 	private int someFieldWithoutAnnotation;
 
 	@ManyToMany(table = "client")
-	private List<Client> clients = new ArrayList<>();
+	private Set<Client> clients = new HashSet<>();
 
 	public Worker(int id, String surname, boolean address) {
 		super();
@@ -82,11 +80,11 @@ public class Worker {
 		return hasAddress;
 	}
 
-	public List<Client> getClients() {
+	public Set<Client> getClients() {
 		return clients;
 	}
 
-	public void setClients(List<Client> clients) {
+	public void setClients(Set<Client> clients) {
 		this.clients = clients;
 	}
 

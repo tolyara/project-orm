@@ -1,13 +1,14 @@
 package SQL;
 
-import java.lang.reflect.Field;
-
 import annotations.Column;
 import annotations.ForeignKey;
 import annotations.ManyToMany;
 import storages.DataTypes;
 import storages.Entity;
 import storages.Table;
+
+import java.lang.reflect.Field;
+import java.util.Random;
 
 /*
  * Class for building SQL requests
@@ -73,13 +74,13 @@ public final class SQLBuilder {
         return SQLRequest.toString();
     }
 
-    public static String buildForeignKeyRequest(Entity entity, Field field, String helpTableName) {
+    public static String buildForeignKeyRequest(Entity entity, Field field, String joinTableName) {
         ManyToMany annotation = field.getAnnotation(ManyToMany.class);
         String columnName = entity.tableName() + "_id";
-        String s = annotation.onUpdate().toString();
+        long hash = new Random().nextLong();
         StringBuilder SQLRequest = new StringBuilder();
-        SQLRequest.append("ALTER TABLE ").append(helpTableName).append(" ADD CONSTRAINT ");
-        SQLRequest.append("fk_").append(helpTableName).append("_").append(columnName);
+        SQLRequest.append("ALTER TABLE ").append(joinTableName).append(" ADD CONSTRAINT ");
+        SQLRequest.append("fk_").append(hash);
         SQLRequest.append(" FOREIGN KEY (").append(columnName).append(")");
         SQLRequest.append(" REFERENCES ").append(entity.tableName()).append(" ").append("(id)");
         SQLRequest.append(" ON UPDATE ").append(annotation.onUpdate().toString()).append(" ");
@@ -95,14 +96,24 @@ public final class SQLBuilder {
         return createTable;
     }
 
+    public static String buildCreateRecordInJoinTableRequest(Entity parent, Entity child, int parentId, int childId) {
+        String joinTableName = Table.getJoinTableName(parent, child);
+        String columnParent = parent.tableName() + "_id";
+        String columnChild = child.tableName() + "_id";
+        String request = "INSERT INTO " + joinTableName
+                + " (" + columnParent + ", " + columnChild + ") "
+                + " VALUES (" + parentId + ", " + childId + ")";
+        return request;
+    }
+
     public static String buildFieldValuesLine(Entity entity) {
         StringBuilder valuesLine = new StringBuilder();
         String columnName;
         Object fieldValue;
 
         for (Field parsedField : entity.getEntityClass().getDeclaredFields()) {
-        	if (parsedField.isAnnotationPresent(Column.class)) {
-            columnName = parsedField.getAnnotation(Column.class).fieldName();
+            if (parsedField.isAnnotationPresent(Column.class)) {
+                columnName = parsedField.getAnnotation(Column.class).fieldName();
 
                 try {
                     parsedField.setAccessible(true);
