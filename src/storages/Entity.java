@@ -1,16 +1,19 @@
 package storages;
 
-import annotations.Column;
-import annotations.ForeignKey;
-import annotations.Model;
-import annotations.PrimaryKey;
+import annotations.*;
+import connections.MyConnection;
+import sql.EntityDAO;
 import sql.QuerryBuilder;
+import sql.SQLBuilder;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
-import java.util.ArrayList;
-import java.util.List;
+import java.lang.reflect.ParameterizedType;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.*;
 
 /*
  * Class for reflection methods
@@ -69,14 +72,14 @@ public class Entity {
 		return typesFields;
 	}
 
-	public List<Field> getForeignKeyFields() {
-		List<Field> foreignKeys = new ArrayList<>();
-		for (Field field : entityClass.getDeclaredFields()) {
-			if (field.isAnnotationPresent(ForeignKey.class)) {
-				foreignKeys.add(field);
+	public List<Field> getManyToManyFields() {
+		List<Field> fieldsWithAnnotation = new ArrayList<>();
+		for (Field f : entityClass.getDeclaredFields()){
+			if (f.isAnnotationPresent(ManyToMany.class)){
+				fieldsWithAnnotation.add(f);
 			}
 		}
-		return foreignKeys;
+		return fieldsWithAnnotation;
 	}
 
 	public Integer getPrimaryKeyValue() {
@@ -150,6 +153,70 @@ public class Entity {
 		return preparedValues.toString().trim().substring(0, preparedValues.toString().length() - 2); // return with
 																										// delete last
 																										// comma
+	}
+
+	public void loadManyToMany(int parentId, int... childIds) {
+		createManyToManyDependency();
+
+		List<Field> fields = this.getManyToManyFields();
+		for (Field field: fields){
+			try {
+				Entity child = getEntityFromFieldWithCollection(field);
+
+				field.setAccessible(true);
+				Collection<Object> childs = new HashSet<>();
+
+
+				try (final Statement statement = new MyConnection(false).getConnection().createStatement()) {
+					for (int childId : childIds) {
+						Entity entity = EntityDAO.getInstance().selectEntityById(child, childId);
+						childs.add(entity.getEntityObject());
+						statement.executeUpdate(SQLBuilder.buildCreateRecordInJoinTableRequest(this, child, parentId, childId));
+					}
+				}
+				field.set(getEntityObject(), childs);
+			} catch (SQLException | IllegalAccessException e) {
+				e.printStackTrace();
+			}
+		}
+	}
+
+	private void createManyToManyDependency() {
+		List<Field> manyToManyFields = this.getManyToManyFields();
+		if (manyToManyFields.size() > 0) {
+			for (Field desiredField : manyToManyFields) {
+				Entity child = this.getEntityFromFieldWithCollection(desiredField);
+				if (!Table.isTableExist(child.tableName())) {
+					Table.createTableFromEntity(child);
+				}
+				String joinTableName = Table.getJoinTableName(this, child);
+				if (!Table.isTableExist(joinTableName)) {
+					executeManyToManyRequest(this, child, desiredField, joinTableName);
+				}
+			}
+		}
+	}
+
+	private static void executeManyToManyRequest(Entity parent, Entity child, Field field, String tableName) {
+		try (final Statement statement = new MyConnection(false).getConnection().createStatement()) {
+			statement.executeUpdate(SQLBuilder.buildJoinTableRequest(parent, child, tableName));
+			statement.executeUpdate(SQLBuilder.buildForeignKeyRequest(parent, field, tableName));
+			statement.executeUpdate(SQLBuilder.buildForeignKeyRequest(child, field, tableName));
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+	}
+
+	public Entity getEntityFromFieldWithCollection(Field field) {
+		Class dependentClassName = null;
+		try {
+			String fullDesiredFieldName = field.getGenericType().toString();
+			String genericClassNameFormList = fullDesiredFieldName.substring(fullDesiredFieldName.indexOf("<") + 1, fullDesiredFieldName.indexOf(">"));
+			dependentClassName = Class.forName(genericClassNameFormList);
+		} catch (ClassNotFoundException e) {
+			e.printStackTrace();
+		}
+		return new Entity(dependentClassName);
 	}
 
 	public Model getModelAnnotation() {

@@ -43,6 +43,7 @@ public class EntityDAO {
 			statement.executeUpdate();
 			try (ResultSet generatedKeys = statement.getGeneratedKeys()) {
 				if (generatedKeys.next()) {
+
 					addedRecordId = generatedKeys.getInt(1);
 				} else {
 					throw new IllegalStateException("Could not return PK of added client!");
@@ -121,7 +122,7 @@ public class EntityDAO {
 		return localEntity;
 	}
 
-	private Entity setFieldsValue(Entity entity, ResultSet resultSet, String primaryKey) throws SQLException {
+	public Entity setFieldsValue(Entity entity, ResultSet resultSet, String primaryKey) throws SQLException {
 		Entity localEntity = new Entity(entity.getEntityClass());
 		try {
 			for (Field parsedField : entity.getEntityClass().getDeclaredFields()) {
