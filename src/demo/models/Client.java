@@ -6,7 +6,6 @@ import annotations.Model;
 import annotations.PrimaryKey;
 
 import java.util.HashSet;
-import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
@@ -24,10 +23,6 @@ public class Client {
 	
 	@Column(fieldName = "isgirl")
 	private boolean isGirl;
-/*
-	@Column(fieldName = "test_id")
-	@ForeignKey(entity = "TestModel", column = "id", onDelete = Actions.CASCADE)
-	private int testId;*/
 
 	@ManyToMany(table = "worker")
 	private Set<Worker> workers = new HashSet<>();
@@ -58,13 +53,6 @@ public class Client {
 		this.name = name;
 		this.isGirl = isGirl;
 	}
-/*
-	public Client(String surname, String name, boolean isGirl, int testId) {
-		this.surname = surname;
-		this.name = name;
-		this.isGirl = isGirl;
-		this.testId = testId;
-	}*/
 
     public Set<Worker> getWorkers() {
         return workers;

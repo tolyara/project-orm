@@ -5,6 +5,7 @@ import java.lang.reflect.Field;
 import java.sql.*;
 import java.util.*;
 
+import connections.MyConnection;
 import sql.EntityDAO;
 import sql.SQLBuilder;
 
@@ -22,17 +23,8 @@ public class Table {
             flag = false;
         } else {
 
-            try (Statement statement = PGConnectionPool.getInstance().getConnection().createStatement()) {
+            try (Statement statement = new MyConnection(false).getConnection().createStatement()) {
                 statement.executeUpdate(SQLBuilder.buildCreateTableRequest(entity));
-
-                List<Field> foreignKeyFields = entity.getForeignKeyFields();
-                if (foreignKeyFields.size() > 0) {
-                    for (Field field : foreignKeyFields) {
-                        statement.executeUpdate(SQLBuilder.buildForeignKeyRequest(entity, field));
-                    }
-                }
-
-                createManyToManyDependency(entity);
 
                 flag = true;
 
@@ -48,7 +40,7 @@ public class Table {
 
         try {
 
-            DatabaseMetaData metaData = getConnection().getMetaData();
+            DatabaseMetaData metaData = new MyConnection(false).getConnection().getMetaData();
             ResultSet resultSet = metaData.getTables(null, null, tableName, null);
 
             if (isResultContainsTableName(resultSet, tableName)) {
@@ -104,34 +96,6 @@ public class Table {
         return objects;
     }
 
-    private static void createManyToManyDependency(Entity parent) {
-        List<Field> manyToManyFields = parent.getManyToManyFields();
-        if (manyToManyFields.size() > 0) {
-            for (Field desiredField : manyToManyFields) {
-                Entity child = getEntityFromFieldWithCollection(desiredField);
-                if (!isTableExist(child.tableName())) {
-                    createTableFromEntity(child);
-                }
-                String joinTableName = getJoinTableName(parent, child);
-                if (!isTableExist(joinTableName)) {
-                    executeManyToManyRequest(parent, child, desiredField, joinTableName);
-                }
-            }
-        }
-    }
-
-    public static Entity getEntityFromFieldWithCollection(Field field) {
-        Class dependentClassName = null;
-        try {
-            String fullDesiredFieldName = field.getGenericType().toString();
-            String genericClassNameFormList = fullDesiredFieldName.substring(fullDesiredFieldName.indexOf("<") + 1, fullDesiredFieldName.indexOf(">"));
-            dependentClassName = Class.forName(genericClassNameFormList);
-        } catch (ClassNotFoundException e) {
-            e.printStackTrace();
-        }
-        return new Entity(dependentClassName);
-    }
-
     public static String getJoinTableName (Entity parentEntity, Entity childEntity) {
         String joinTableName1 = parentEntity.tableName() + "_" + childEntity.tableName();
         String joinTableName2 = childEntity.tableName() + "_" + parentEntity.tableName();
@@ -140,16 +104,6 @@ public class Table {
         } else if (isTableExist(joinTableName2)) {
             return joinTableName2;
         } else return joinTableName1;
-    }
-
-    private static void executeManyToManyRequest(Entity parent, Entity child, Field field, String tableName) {
-        try (final Statement statement = PGConnectionPool.getInstance().getConnection().createStatement()) {
-            statement.executeUpdate(SQLBuilder.buildJoinTableRequest(parent, child, tableName));
-            statement.executeUpdate(SQLBuilder.buildForeignKeyRequest(parent, field, tableName));
-            statement.executeUpdate(SQLBuilder.buildForeignKeyRequest(child, field, tableName));
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
     }
 
     private static Connection getConnection() throws SQLException {

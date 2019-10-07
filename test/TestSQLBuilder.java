@@ -1,14 +1,11 @@
 package test;
 
 import demo.models.Client;
-import demo.models.TestModel;
-import sql.SQLBuilder;
-
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import sql.SQLBuilder;
 import storages.Entity;
-import storages.Table;
 
 public class TestSQLBuilder {
 
@@ -29,13 +26,5 @@ public class TestSQLBuilder {
                 "test_id INTEGER, " +
                 "PRIMARY KEY (id))";
         Assert.assertEquals(correctSQLRequest, SQLBuilder.buildCreateTableRequest(client));
-    }
-
-    @Test
-    public void methodShouldCreateDependentTableIfItIsNotExist() throws NoSuchFieldException {
-        String requestTableName = new Entity(TestModel.class).tableName();
-        Table.deleteEntityTable(requestTableName);
-        SQLBuilder.buildForeignKeyRequest(client, Client.class.getDeclaredField("testId"));
-        Assert.assertTrue(Table.isTableExist(requestTableName));
     }
 }

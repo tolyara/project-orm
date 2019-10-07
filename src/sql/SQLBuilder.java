@@ -1,7 +1,6 @@
 package sql;
 
 import annotations.Column;
-import annotations.ForeignKey;
 import annotations.ManyToMany;
 import storages.DataTypes;
 import storages.Entity;
@@ -14,6 +13,18 @@ import java.lang.reflect.Field;
  */
 
 public final class SQLBuilder {
+    private final static String CREATETABLE = "CREATE TABLE ";
+    private final static String PRIMARYKEY = "PRIMARY KEY";
+    private final static String _ID = "_id";
+    private final static String ID = " (id)";
+    private final static String ALTERTABLE = "ALTER TABLE ";
+    private final static String ADDCONSTRAINT = " ADD CONSTRAINT ";
+    private final static String FOREIGNKEY = " FOREIGN KEY";
+    private final static String INTEGER = " INTEGER, ";
+    private final static String LEFTBRACKET = " (";
+    private final static String RIGHTBRACKET = ")";
+    private final static String SERIAL = " serial, ";
+    private final static String INSERTINTO = "INSERT INTO ";
 
 
     /*
@@ -26,11 +37,11 @@ public final class SQLBuilder {
         String tableName = entity.tableName();
         String primaryKey = entity.primaryKey();
 
-        StringBuilder SQLRequest = new StringBuilder("CREATE TABLE " + tableName
-                + " (" + primaryKey + " serial, ");
+        StringBuilder SQLRequest = new StringBuilder(CREATETABLE + tableName
+                + LEFTBRACKET + primaryKey + SERIAL);
         SQLRequest.append(buildEntityFieldLine(entity));
-        SQLRequest.append("PRIMARY KEY (").append(primaryKey).append(")");
-        SQLRequest.append(")");
+        SQLRequest.append(PRIMARYKEY).append(LEFTBRACKET).append(primaryKey).append(RIGHTBRACKET);
+        SQLRequest.append(RIGHTBRACKET);
         return SQLRequest.toString();
     }
 
@@ -45,62 +56,34 @@ public final class SQLBuilder {
         return fieldLine.toString();
     }
 
-
-    public static String buildForeignKeyRequest(Entity entity, Field field) {
-        ForeignKey annotation = field.getAnnotation(ForeignKey.class);
-        StringBuilder SQLRequest = new StringBuilder();
-        try {
-            String name = "demo.models." + annotation.entity();
-            Entity entityRequest = new Entity(Class.forName(name));
-            String requestTableName = entityRequest.tableName();
-
-            if (!Table.isTableExist(requestTableName)) {
-                Table.createTableFromEntity(entityRequest);
-            }
-
-            //todo strings to constants
-            SQLRequest.append("ALTER TABLE ").append(entity.tableName()).append(" ADD CONSTRAINT ");
-            SQLRequest.append("fk_").append(entity.tableName()).append("_").append(field.getName());
-            SQLRequest.append(" FOREIGN KEY ");
-            SQLRequest.append("(").append(field.getAnnotation(Column.class).fieldName()).append(")");
-            SQLRequest.append(" REFERENCES ").append(requestTableName).append(" ");
-            SQLRequest.append("(").append(annotation.column()).append(")");
-            SQLRequest.append(" ON UPDATE ").append(annotation.onUpdate().toString()).append(" ");
-            SQLRequest.append(" ON DELETE ").append(annotation.onDelete().toString()).append(" ");
-        } catch (ClassNotFoundException e) {
-            e.printStackTrace();
-        }
-        return SQLRequest.toString();
-    }
-
     public static String buildForeignKeyRequest(Entity entity, Field field, String joinTableName) {
         ManyToMany annotation = field.getAnnotation(ManyToMany.class);
-        String columnName = entity.tableName() + "_id";
+        String columnName = entity.tableName() + _ID;
         StringBuilder SQLRequest = new StringBuilder();
-        SQLRequest.append("ALTER TABLE ").append(joinTableName).append(" ADD CONSTRAINT ");
+        SQLRequest.append(ALTERTABLE).append(joinTableName).append(ADDCONSTRAINT);
         SQLRequest.append("fk_").append(columnName).append(joinTableName);
-        SQLRequest.append(" FOREIGN KEY (").append(columnName).append(")");
-        SQLRequest.append(" REFERENCES ").append(entity.tableName()).append(" ").append("(id)");
+        SQLRequest.append(FOREIGNKEY).append(LEFTBRACKET).append(columnName).append(RIGHTBRACKET);
+        SQLRequest.append(" REFERENCES ").append(entity.tableName()).append(ID);
         SQLRequest.append(" ON UPDATE ").append(annotation.onUpdate().toString()).append(" ");
         SQLRequest.append(" ON DELETE ").append(annotation.onDelete().toString()).append(" ");
         return SQLRequest.toString();
     }
 
     public static String buildJoinTableRequest(Entity first, Entity second, String joinTableName) {
-        String firstColumnName = first.tableName() + "_id";
-        String secondColumnName = second.tableName() + "_id";
-        String createTable = "CREATE TABLE " + joinTableName +
-                "(id serial, " + firstColumnName + " INTEGER, " + secondColumnName + " INTEGER, PRIMARY KEY (id))";
+        String firstColumnName = first.tableName() + _ID;
+        String secondColumnName = second.tableName() + _ID;
+        String createTable = CREATETABLE + joinTableName +
+                "(id" + SERIAL + firstColumnName + INTEGER + secondColumnName + INTEGER +  PRIMARYKEY  + ID + RIGHTBRACKET;
         return createTable;
     }
 
     public static String buildCreateRecordInJoinTableRequest(Entity parent, Entity child, int parentId, int childId) {
         String joinTableName = Table.getJoinTableName(parent, child);
-        String columnParent = parent.tableName() + "_id";
-        String columnChild = child.tableName() + "_id";
-        String request = "INSERT INTO " + joinTableName
-                + " (" + columnParent + ", " + columnChild + ") "
-                + " VALUES (" + parentId + ", " + childId + ")";
+        String columnParent = parent.tableName() + _ID;
+        String columnChild = child.tableName() + _ID;
+        String request = INSERTINTO + joinTableName
+                + LEFTBRACKET + columnParent + ", " + columnChild + RIGHTBRACKET
+                + " VALUES" + LEFTBRACKET + parentId + ", " + childId + RIGHTBRACKET;
         return request;
     }
 
