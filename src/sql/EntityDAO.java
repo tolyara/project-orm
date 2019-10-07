@@ -1,4 +1,4 @@
-package SQL;
+package sql;
 
 import storages.Entity;
 import storages.PGConnectionPool;
@@ -13,6 +13,7 @@ import javax.sql.rowset.CachedRowSet;
 import annotations.Column;
 import annotations.Model;
 import annotations.PrimaryKey;
+import connections.MyConnection;
 
 public class EntityDAO {
 
@@ -20,11 +21,7 @@ public class EntityDAO {
 	Connection connection;
 
 	private EntityDAO() {
-		try {
-			connection = PGConnectionPool.getInstance().getConnection();
-		} catch (SQLException e) {
-			e.printStackTrace();
-		}
+		connection = (new MyConnection(false)).getConnection();
 	}
 
 	public static EntityDAO getInstance() {
@@ -46,14 +43,14 @@ public class EntityDAO {
 			statement.executeUpdate();
 			try (ResultSet generatedKeys = statement.getGeneratedKeys()) {
 				if (generatedKeys.next()) {
-					//todo why 1?
-					addedRecordId = generatedKeys.getInt(1); 
+
+					addedRecordId = generatedKeys.getInt(1);
 				} else {
 					throw new IllegalStateException("Could not return PK of added client!");
 				}
 			}
 		} catch (SQLException e) {
-			e.printStackTrace(); 
+			e.printStackTrace();
 		}
 		return addedRecordId;
 	}
@@ -72,10 +69,22 @@ public class EntityDAO {
 		}
 		return flag;
 	}
+	
+	public boolean deleteAllRecordsInTable(Entity entity) {
+
+		boolean flag = false;
+		final String QUERY_DELETE_ON_TABLE = "TRUNCATE TABLE " + entity.tableName() + ";";
+		try (final Statement statement = connection.createStatement()) {
+			statement.executeUpdate(QUERY_DELETE_ON_TABLE);
+			flag = true;
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return flag;
+	}
 
 	public List<Entity> readAllRecordsOrderedByPK(Entity entity) {
 
-		//Model modelAnnotation = (Model) entityClass.getAnnotation(Model.class);
 		final String TABLE_NAME = entity.tableName();
 		String PK_NAME = entity.primaryKey();
 
@@ -104,8 +113,9 @@ public class EntityDAO {
 		String QUERY_SELECT_BY_ID = "SELECT * FROM " + TABLE_NAME + " WHERE " + PK_NAME + " = " + id;
 		try (final Statement statement = connection.createStatement();
 				final ResultSet resultSet = statement.executeQuery(QUERY_SELECT_BY_ID)) {
-			resultSet.next();
-			localEntity = setFieldsValue(entity, resultSet, PK_NAME);
+			while (resultSet.next()) {
+				localEntity = setFieldsValue(entity, resultSet, PK_NAME);
+			}
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
@@ -131,7 +141,7 @@ public class EntityDAO {
 		return localEntity;
 	}
 
-@Deprecated
+	@Deprecated
 	private Object getNewInstance(Class<?> entityClass) {
 		Object o = null;
 		try {

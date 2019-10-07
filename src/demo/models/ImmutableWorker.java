@@ -71,8 +71,6 @@ public class ImmutableWorker {
 
 	public String getSurname() {
 		return surname;
-	}	
-	
-	
+	}		
 	
 }

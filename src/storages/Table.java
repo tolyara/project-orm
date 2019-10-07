@@ -1,14 +1,12 @@
 package storages;
 
-import SQL.EntityDAO;
-import SQL.SQLBuilder;
-import annotations.ManyToMany;
-import demo.models.Worker;
-import jdk.swing.interop.SwingInterOpUtils;
-
 import java.lang.reflect.Field;
+
 import java.sql.*;
 import java.util.*;
+
+import sql.EntityDAO;
+import sql.SQLBuilder;
 
 /*
  * Class for working with DB tables
@@ -100,14 +98,10 @@ public class Table {
         return flag;
 
     }
-    // TODO Refactor if method from EntityDAO will work
 
     public static List<Entity> readAllDataFromTable(Entity entity) {
-
         List<Entity> objects = new ArrayList<Entity>();
-//        objects = EntityDAO.getInstance().readAllRecordsOrderedByPK(entity);
         return objects;
-
     }
 
     private static void createManyToManyDependency(Entity parent) {
