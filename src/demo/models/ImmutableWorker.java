@@ -14,7 +14,7 @@ public class ImmutableWorker {
 	private final String surname;
 	
 	@Column(fieldName = "worker_address")
-	private final int hasAddress;
+	private final boolean hasAddress;
 	
 	@Column(fieldName = "worker_salary")
 	private final double salary;
@@ -25,11 +25,11 @@ public class ImmutableWorker {
 		super();
 		this.id = 0;
 		this.surname = "";
-		this.hasAddress = 0;
+		this.hasAddress = false;
 		this.salary = 0;
 	}
 
-	public ImmutableWorker(int id, String surname, int hasAddress, double salary) {
+	public ImmutableWorker(int id, String surname, boolean hasAddress, double salary) {
 		super();
 		this.id = id;
 		this.surname = surname;
@@ -71,8 +71,6 @@ public class ImmutableWorker {
 
 	public String getSurname() {
 		return surname;
-	}	
-	
-	
+	}		
 	
 }

@@ -1,11 +1,11 @@
 package storages;
 
-import SQL.EntityDAO;
-import SQL.SQLBuilder;
-
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
+
+import sql.EntityDAO;
+import sql.SQLBuilder;
 
 /*
  * Class for working with DB tables
@@ -82,13 +82,9 @@ public class Table {
 
     }
 
-    // TODO Refactor if method from EntityDAO will work
     public static List<Entity> readAllDataFromTable(Entity entity) {
-
         List<Entity> objects = new ArrayList<Entity>();
-//        objects = EntityDAO.getInstance().readAllRecordsOrderedByPK(entity);
         return objects;
-
     }
 
     private static boolean isResultContainsTableName(ResultSet resultSet, String tableName) throws SQLException {

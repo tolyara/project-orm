@@ -5,4 +5,4 @@
  * @author Anatoliy Melchenko
  *
  */
-package sql;
+package scripts;

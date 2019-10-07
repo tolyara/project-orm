@@ -4,13 +4,15 @@ import java.lang.reflect.Field;
 import java.sql.*;
 import java.util.List;
 
-import SQL.EntityDAO;
+import connections.MyConnection;
 import demo.models.Client;
+import demo.models.ForTest;
 import demo.models.ImmutableWorker;
 import demo.models.TestModel;
 import demo.models.Worker;
+import sql.EntityDAO;
+import sql.QuerryBuilder;
 import storages.Entity;
-import storages.MyConnection;
 import storages.Table;
 import transactions.Transaction;
 
@@ -22,13 +24,8 @@ public class MainClass {
 	public static final String POSTGRESQL_DRIVER = "org.postgresql.Driver";
 	private static final String VERSION = "beta version";
 	public static final MyConnection connection = new MyConnection(false);
-	private static final MyConnection connectionViaConnectionPool = new MyConnection();
 
 	private static final Client CLIENT = new Client("Ivanov", "Ivan", "false");
-
-	private static final EntityDAO entityDAO = EntityDAO.getInstance();
-
-	private static final int ITERATION_NUMBER = 10;
 
 	public static void main(String[] args) throws Exception {
 
@@ -43,7 +40,6 @@ public class MainClass {
 	 */
 	private static void closeResources() {
 		connection.close();
-		connectionViaConnectionPool.close();
 	}
 
 	private static void printHeader() {
@@ -51,7 +47,7 @@ public class MainClass {
 	}
 
 	private static void doDemo() throws Exception {
-//		 Table.createTableFromEntity(new Entity(Worker.class));
+//		 Table.createTableFromEntity(new Entity(ForTest.class));
 
 //		printReceivedObjects(EntityDAO.getInstance().readAllRecordsOrderedByPK(new Entity(Worker.class)));
 
@@ -59,7 +55,7 @@ public class MainClass {
 		// Entity(Worker.class), 40);
 		// System.out.println(en.getEntityObject());
 
-//		 Table.createRecordInTable(new Entity(new ImmutableWorker(12, "tes65", 9,
+//		 Table.createRecordInTable(new Entity(new ImmutableWorker(12, "tes65", true,
 //		 600.5)));
 		// Table.createRecordInTable(new Entity(new Worker(12, "test9", false, 999,
 		// 9)));
@@ -69,6 +65,31 @@ public class MainClass {
 		// false, 1000, 23)));
 //		System.out.println(EntityDAO.getInstance().deleteRecordInTableByPK(new Entity(new Worker(10))));
 		// entityDAO.deleteAllRecordsInTable(new Entity(Worker.class));
+		
+//		createCustomScript();
+		
+		
+	}
+
+	private static void createCustomScript() {
+		
+		QuerryBuilder querryBuilder = new QuerryBuilder();
+		Entity entity = new Entity(Worker.class);
+		
+		final String QUERRY_1 = querryBuilder.selectAll().from(entity).submit();
+		System.out.println(QUERRY_1);
+		
+		final String QUERRY_2 = querryBuilder
+				.select(entity.column("id"), (entity.column("surname").avg()))
+				.from(entity)
+				.where(entity.column("hasAddress").lessThan(true))
+				.orderBy(entity.column("id")).submit();
+		System.out.println(QUERRY_2);		
+		
+		final String QUERRY_3 = querryBuilder.selectAll().from(entity).where(entity.column("salary").moreThan(100))
+				.and(entity.column("hasAddress").eq(false)).submit();				
+		System.out.println(QUERRY_3);
+		
 	}
 
 	private static void printReceivedObjects(List<Entity> entities)
@@ -81,7 +102,6 @@ public class MainClass {
 			}
 			System.out.println();
 		}
-		// System.out.println(objects.size());
 	}
 
 	private static void tryTransaction() throws Exception {
@@ -96,27 +116,6 @@ public class MainClass {
 			tx.rollback();
 			e.printStackTrace();
 		}
-	}
-
-	/*
-	 * Method checks time of execution various ways of connection
-	 */
-	private static void checkProcuctivity() {
-
-		long start = System.currentTimeMillis();
-		for (int i = 0; i < ITERATION_NUMBER; i++) {
-			Table.createRecordInTable(new Entity(CLIENT));
-		}
-		long finish = System.currentTimeMillis();
-		System.out.println("Finished in : " + (finish - start) + " millis");
-
-		start = System.currentTimeMillis();
-		for (int i = 0; i < ITERATION_NUMBER; i++) {
-			Table.createRecordInTable(new Entity(CLIENT));
-		}
-		finish = System.currentTimeMillis();
-		System.out.println("Finished in : " + (finish - start) + " millis");
-
 	}
 
 }

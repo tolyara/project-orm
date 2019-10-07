@@ -4,6 +4,7 @@ import annotations.Column;
 import annotations.ForeignKey;
 import annotations.Model;
 import annotations.PrimaryKey;
+import sql.QuerryBuilder;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
@@ -19,16 +20,13 @@ public class Entity {
 	private Class<?> entityClass;
 	private Object entityObject;
 
-
-
-
 	public Entity(Class entityClass) {
 		if (entityClass.getAnnotation(Model.class) != null) {
 			this.entityClass = entityClass;
 
 			try {
 				this.entityObject = entityClass.newInstance();
-				if(!Table.isTableExist(this.getModelAnnotation().tableName()))
+				if (!Table.isTableExist(this.getModelAnnotation().tableName()))
 					Table.createTableFromEntity(this);
 			} catch (IllegalAccessException e) {
 				e.printStackTrace();
@@ -44,13 +42,12 @@ public class Entity {
 		if (object.getClass().getAnnotation(Model.class) != null) {
 			this.entityClass = object.getClass();
 			entityObject = object;
-			if(!Table.isTableExist(this.getModelAnnotation().tableName()))
+			if (!Table.isTableExist(this.getModelAnnotation().tableName()))
 				Table.createTableFromEntity(this);
 		} else {
 			// TODO exception
 		}
 	}
-
 
 	public List<String> getFieldsNames() {
 		List<String> nameFields = new ArrayList<>();
@@ -178,5 +175,28 @@ public class Entity {
 	public Class<? extends Annotation> annotationType() {
 		return Model.class;
 	}
-	
+
+	public QuerryBuilder column(String fieldName) {
+		String columnName = ""; 
+		for (Field parsedField : entityClass.getDeclaredFields()) {
+			if (parsedField.getName().equals(fieldName)) {
+				columnName = getAnnotationAttrubite(parsedField);
+			} else {
+				
+			}
+		}
+		return new QuerryBuilder(columnName);
+	}
+
+	private String getAnnotationAttrubite(Field parsedField) {
+		String columnName = "";
+		if (parsedField.isAnnotationPresent(PrimaryKey.class)) {
+            columnName = this.primaryKey();
+		}
+		else {
+			columnName = parsedField.getAnnotation(Column.class).fieldName();
+		}
+		return columnName;
+	}	
+
 }

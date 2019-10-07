@@ -6,13 +6,13 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import SQL.EntityDAO;
+import connections.MyConnection;
 import demo.MainClass;
 import demo.models.ImmutableWorker;
 import demo.models.TestModel;
 import demo.models.Worker;
+import sql.EntityDAO;
 import storages.Entity;
-import storages.MyConnection;
 import storages.Table;
 
 public class TestCRUD {
@@ -29,7 +29,6 @@ public class TestCRUD {
 
 	@Test 
 	public void testCreate() { 
-//		idOfAddedEntity = Table.createRecordInTable(new Entity(worker)); 
 		int idOfAddedEntity = Table.createRecordInTable(new Entity(worker)); 
 		ImmutableWorker workerFromDB = (ImmutableWorker) entityDAO.selectEntityById(new Entity(ImmutableWorker.class), idOfAddedEntity).getEntityObject();
 		assertEquals(workerFromDB.getId(), idOfAddedEntity);

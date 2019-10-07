@@ -4,7 +4,7 @@ import java.util.HashMap;
 
 public class DatabaseTypeManager {
 	
-	private static String DatabaseType = "mysql";
+	private static String DatabaseType = "postgres";
 
     public static HashMap<String, String> getDatabaseSettings() {
     	HashMap<String, String> databaseSettings = new HashMap<>();

@@ -1,4 +1,4 @@
-package SQL;
+package sql;
 
 import java.lang.reflect.Field;
 
