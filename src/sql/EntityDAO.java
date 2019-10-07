@@ -1,6 +1,7 @@
 package SQL;
 
 import annotations.Column;
+import annotations.ManyToOne;
 import annotations.PrimaryKey;
 import connections.MyConnection;
 import storages.Entity;
@@ -9,7 +10,9 @@ import storages.PGConnectionPool;
 import java.lang.reflect.Field;
 import java.sql.*;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class EntityDAO {
 
@@ -29,7 +32,7 @@ public class EntityDAO {
     }
 
     //todo remove public static
-    public static Entity setFieldsValue(Entity entity, ResultSet resultSet, String primaryKey) throws SQLException {
+    private Entity setFieldsValue(Entity entity, ResultSet resultSet, String primaryKey) throws SQLException {
         Entity localEntity = new Entity(entity.getEntityClass());
         try {
             for (Field parsedField : entity.getEntityClass().getDeclaredFields()) {
@@ -115,6 +118,31 @@ public class EntityDAO {
                 entities.add(en);
             }
         } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return entities;
+    }
+
+    public ResultSet getEntityResultSet(Entity entity) throws SQLException {
+
+        final Statement statement = PGConnectionPool.getInstance().getConnection().createStatement();
+        final ResultSet resultSet = statement.executeQuery("SELECT * FROM " + entity.getModelAnnotation().tableName() + " WHERE " + entity.primaryKey() + " = " + entity.getPrimaryKeyValue());
+
+        return resultSet;
+    }
+
+    public Set<Object> getMappedObjectList(Entity entity, Entity mappedEntity, Field manyToOneField){
+
+        Set<Object> entities = new HashSet<>();
+        Entity localEntity;
+        try (final Statement statement = PGConnectionPool.getInstance().getConnection().createStatement();
+             final ResultSet resultSet = statement.executeQuery("SELECT * FROM " + mappedEntity.getModelAnnotation().tableName() + " WHERE " + manyToOneField.getAnnotation(ManyToOne.class).joinColumn() + " = " + entity.getPrimaryKeyValue())) {
+            while (resultSet.next()) {
+                localEntity = EntityDAO.getInstance().setFieldsValue(mappedEntity, resultSet, mappedEntity.getModelAnnotation().primaryKey());
+                entities.add(localEntity.getEntityObject());
+            }
+        }catch (SQLException e)
+        {
             e.printStackTrace();
         }
         return entities;
