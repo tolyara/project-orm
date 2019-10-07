@@ -79,7 +79,7 @@ public final class SQLBuilder {
         String s = annotation.onUpdate().toString();
         StringBuilder SQLRequest = new StringBuilder();
         SQLRequest.append("ALTER TABLE ").append(helpTableName).append(" ADD CONSTRAINT ");
-        SQLRequest.append("fk_").append(helpTableName).append("_").append(columnName);
+        SQLRequest.append("fk_").append(entity.tableName()).append("_").append(field.getName());
         SQLRequest.append(" FOREIGN KEY (").append(columnName).append(")");
         SQLRequest.append(" REFERENCES ").append(entity.tableName()).append(" ").append("(id)");
         SQLRequest.append(" ON UPDATE ").append(annotation.onUpdate().toString()).append(" ");
