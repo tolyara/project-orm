@@ -1,12 +1,18 @@
 package demo;
 
+import java.lang.reflect.Field;
+import java.sql.*;
 import java.util.List;
 
-import SQL.EntityDAO;
+import connections.MyConnection;
 import demo.models.Client;
+import demo.models.ForTest;
+import demo.models.ImmutableWorker;
+import demo.models.TestModel;
 import demo.models.Worker;
+import sql.EntityDAO;
+import sql.QuerryBuilder;
 import storages.Entity;
-import storages.MyConnection;
 import storages.Table;
 import transactions.Transaction;
 
@@ -17,19 +23,16 @@ public class MainClass {
 
 	public static final String POSTGRESQL_DRIVER = "org.postgresql.Driver";
 	private static final String VERSION = "beta version";
-	public static final MyConnection connection = new MyConnection(POSTGRESQL_DRIVER);
-	private static final MyConnection connectionViaConnectionPool = new MyConnection();
+	public static final MyConnection connection = new MyConnection(false);
+
 
 	private static final Client CLIENT = new Client("Ivanov", "Ivan", false);
-	private static final Client CLIENT2 = new Client(1, "333", "456", true);
-
-	private static final int ITERATION_NUMBER = 10;
 
 	public static void main(String[] args) throws Exception {
 
-		printHeader();
-		doDemo();
-		closeResources();
+		 printHeader();
+		 doDemo();
+		 closeResources();
 
 	}
 
@@ -38,7 +41,6 @@ public class MainClass {
 	 */
 	private static void closeResources() {
 		connection.close();
-		connectionViaConnectionPool.close();
 	}
 
 	private static void printHeader() {
@@ -47,54 +49,62 @@ public class MainClass {
 
 	private static void doDemo() throws Exception {
 
-		// Table.createTableFromEntity(new Entity(Worker.class));
+//		 Table.createTableFromEntity(new Entity(ForTest.class));
 
-		List<Entity> entities = EntityDAO.getInstance().readAllRecordsOrderedByPK(new Entity(Worker.class));
-		Entity entity = EntityDAO.getInstance().selectEntityById(new Entity(Worker.class), 3);
-		System.out.println("");
-		//printReceivedObjects(EntityDAO.getInstance().readAllRecordsOrderedByPK(new Entity(Worker.class)));
+//		printReceivedObjects(EntityDAO.getInstance().readAllRecordsOrderedByPK(new Entity(Worker.class)));
 
-//		 Object en = EntityDAO.getInstance().selectEntityById(Worker.class, 7);
-//		 System.out.println(en);
+		// Entity en = EntityDAO.getInstance().selectEntityById(new
+		// Entity(Worker.class), 40);
+		// System.out.println(en.getEntityObject());
 
-//		 Table.createRecordInTable(new Entity(new ImmutableWorker(12, "tes65", true, 600.5)));
 
-//		 Table.createTableFromEntity(new Entity(Client.class));
-		 Entity worker1 = new Entity(new Worker("work1", true));
-		 Entity worker2 = new Entity(new Worker("work2", true));
-		 Entity worker3 = new Entity(new Worker("work3", true));
-		 Entity client1 = new Entity(new Client("sur1", "name1", false));
-		 Entity client2 = new Entity(new Client("sur2", "name2", true));
-
-		Table.createRecordInTable(worker1);
-		Table.createRecordInTable(worker2);
-		Table.createRecordInTable(worker3);
-		Table.createRecordInTable(client1);
-		Table.createRecordInTable(client2);
-//
-//		 Table.doMagic(client1, worker2, 5, 12);
-//		 Table.doMagic(client1, worker1, 5, 11);
-//		 Table.doMagic(client1, worker3, 5, 8);
-//		 Table.doMagic(worker3, client1, 6, 10);
-//		 Table.doMagic(worker3, client2, 6, 11);
-		// Table.deleteEntityTable("worker");
-//		 EntityDAO.getInstance().updateRecordInTable(new Entity(new Worker(10, "super_test4",
-//		 false, 1000, 23)));
-//		 EntityDAO.getInstance().deleteRecordInTableByPK(new Entity(new Worker(10)));
+//		 Table.createRecordInTable(new Entity(new ImmutableWorker(12, "tes65", true,
+//		 600.5)));
+		// Table.createRecordInTable(new Entity(new Worker(12, "test9", false, 999,
+		// 9)));
+		// Table.createTableFromEntity(new Entity(Client.class));
+		// EntityDAO.getInstance().updateRecordInTable(new Entity(new Worker(10,
+		// "super_test4",
+		// false, 1000, 23)));
+//		System.out.println(EntityDAO.getInstance().deleteRecordInTableByPK(new Entity(new Worker(10))));
+		// entityDAO.deleteAllRecordsInTable(new Entity(Worker.class));
+		
+//		createCustomScript();
+		
+		
 	}
 
-	private static void printReceivedObjects(List<Object> objects)
+	private static void createCustomScript() {
+		
+		QuerryBuilder querryBuilder = new QuerryBuilder();
+		Entity entity = new Entity(Worker.class);
+		
+		final String QUERRY_1 = querryBuilder.selectAll().from(entity).submit();
+		System.out.println(QUERRY_1);
+		
+		final String QUERRY_2 = querryBuilder
+				.select(entity.column("id"), (entity.column("surname").avg()))
+				.from(entity)
+				.where(entity.column("hasAddress").lessThan(true))
+				.orderBy(entity.column("id")).submit();
+		System.out.println(QUERRY_2);		
+		
+		final String QUERRY_3 = querryBuilder.selectAll().from(entity).where(entity.column("salary").moreThan(100))
+				.and(entity.column("hasAddress").eq(false)).submit();				
+		System.out.println(QUERRY_3);
+		
+	}
+
+	private static void printReceivedObjects(List<Entity> entities)
 			throws IllegalArgumentException, IllegalAccessException {
-		for (Object o : objects) {
-//			Worker o = (Worker) entity.getEntityObject();
-			System.out.println(((Worker) o).getId());
-			// for (Field field : o.getClass().getDeclaredFields()) {
-			// field.setAccessible(true);
-			// System.out.printf("%14s", field.get(o));
-			// }
-			// System.out.println();
+		for (Entity entity : entities) {
+			Worker worker = (Worker) entity.getEntityObject();
+			for (Field field : worker.getClass().getDeclaredFields()) {
+				field.setAccessible(true);
+				System.out.printf("%14s", field.get(worker));
+			}
+			System.out.println();
 		}
-//		System.out.println(objects.size());
 	}
 
 	private static void tryTransaction() throws Exception {
@@ -109,27 +119,6 @@ public class MainClass {
 			tx.rollback();
 			e.printStackTrace();
 		}
-	}
-
-	/*
-	 * Method checks time of execution various ways of connection
-	 */
-	private static void checkProcuctivity() {
-
-		long start = System.currentTimeMillis();
-		for (int i = 0; i < ITERATION_NUMBER; i++) {
-			Table.createRecordInTable(new Entity(CLIENT));
-		}
-		long finish = System.currentTimeMillis();
-		System.out.println("Finished in : " + (finish - start) + " millis");
-
-		start = System.currentTimeMillis();
-		for (int i = 0; i < ITERATION_NUMBER; i++) {
-			Table.createRecordInTable(new Entity(CLIENT));
-		}
-		finish = System.currentTimeMillis();
-		System.out.println("Finished in : " + (finish - start) + " millis");
-
 	}
 
 }
