@@ -1,12 +1,13 @@
 package storages;
 
+
 import SQL.EntityDAO;
+import SQL.QuerryBuilder;
 import annotations.*;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.ParameterizedType;
-import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -14,6 +15,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+
 
 /*
  * Class for reflection methods
@@ -285,6 +287,28 @@ public class Entity {
 
     public Class<? extends Annotation> annotationType() {
         return Model.class;
+    }
+    public QuerryBuilder column(String fieldName) {
+        String columnName = "";
+        for (Field parsedField : entityClass.getDeclaredFields()) {
+            if (parsedField.getName().equals(fieldName)) {
+                columnName = getAnnotationAttrubite(parsedField);
+            } else {
+
+            }
+        }
+        return new QuerryBuilder(columnName);
+    }
+
+    private String getAnnotationAttrubite(Field parsedField) {
+        String columnName = "";
+        if (parsedField.isAnnotationPresent(PrimaryKey.class)) {
+            columnName = this.primaryKey();
+        }
+        else {
+            columnName = parsedField.getAnnotation(Column.class).fieldName();
+        }
+        return columnName;
     }
 
 }

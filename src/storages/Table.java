@@ -1,9 +1,9 @@
 package storages;
 
-import SQL.EntityDAO;
-import SQL.SQLBuilder;
-import annotations.Column;
+
 import annotations.ManyToOne;
+import sql.EntityDAO;
+import sql.SQLBuilder;
 
 import java.lang.reflect.Field;
 import java.sql.*;
@@ -88,13 +88,9 @@ public class Table {
 
     }
 
-    // TODO Refactor if method from EntityDAO will work
     public static List<Entity> readAllDataFromTable(Entity entity) {
-
         List<Entity> objects = new ArrayList<Entity>();
-//        objects = EntityDAO.getInstance().readAllRecordsOrderedByPK(entity);
         return objects;
-
     }
 
     //todo refactor

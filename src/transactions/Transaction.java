@@ -1,8 +1,5 @@
 package transactions;
 
-import storages.MyConnection;
-
-
 import java.sql.Connection;
 import java.sql.SQLException;
 

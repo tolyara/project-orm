@@ -1,8 +1,9 @@
 package test;
 
-import SQL.SQLBuilder;
 import demo.models.Client;
 import demo.models.TestModel;
+import sql.SQLBuilder;
+
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;

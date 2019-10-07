@@ -5,7 +5,7 @@ import java.sql.SQLException;
 
 import org.postgresql.ds.PGPoolingDataSource;
 
-import service.Settings;
+import services.Settings;
 
 /**
  * Class implements connection to PostgreSQL DB with creating connection pool

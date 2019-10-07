@@ -1,11 +1,13 @@
-package storages;
+package connections;
 
 import java.sql.*;
 import java.util.*;
 
 import annotations.Model;
-
-import service.Settings;
+import connections.DatabaseTypeManager;
+import demo.MainClass;
+import services.Settings;
+import storages.PGConnectionPool;
 
 /**
  * Class implements interaction with database
@@ -19,17 +21,17 @@ public class MyConnection implements AutoCloseable {
 	}
 
 	public MyConnection() {
-		try {
-			this.connection = PGConnectionPool.getInstance().getConnection();
-		} catch (SQLException e) {
-			e.printStackTrace();
-		}
+		setConnectionPool();		
 	}
 
-	public MyConnection(String driver) {
+	public MyConnection(boolean isConnectionPool) {
 		final Settings settings = Settings.getInstance();
-		try {
-			Class.forName(driver);
+		if (isConnectionPool) {
+			setConnectionPool();
+		}
+		else {
+			try {
+			Class.forName(settings.getValue("postgres.driver"));
 			this.connection = DriverManager.getConnection(settings.getValue("postgres.url"),
 					settings.getValue("postgres.username"), settings.getValue("postgres.password"));
 		} catch (SQLException e) {
@@ -37,6 +39,16 @@ public class MyConnection implements AutoCloseable {
 		} catch (ClassNotFoundException e) {
 			e.printStackTrace();
 		}
+
+		}
+	}
+	
+	private void setConnectionPool() {
+		try {
+			this.connection = PGConnectionPool.getInstance().getConnection();
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}		
 	}
 
 	@Override
@@ -47,4 +59,5 @@ public class MyConnection implements AutoCloseable {
 			e.printStackTrace();
 		}
 	}
+
 }
