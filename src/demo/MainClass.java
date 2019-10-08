@@ -48,19 +48,9 @@ public class MainClass {
 	}
 
 	private static void doDemo() throws Exception {
-		Teacher teacher1 = new Teacher("TeacherName1", "TeacherSurname1", true);
-		Teacher teacher2 = new Teacher("TeacherName2", "TeacherSurname2", false);
-		Teacher teacher3 = new Teacher("TeacherName3", "TeacherSurname3", true);
-		Student student1 = new Student("StudentName1", "StudentSurname1", 4.5);
-		Student student2 = new Student("StudentName2", "StudentSurname2", 2.7);
-		Student student3 = new Student("StudentName3", "StudentSurname3", 3.8);
 
-		Entity entityTeacher1 = new Entity(teacher1);
-		Entity entityTeacher2 = new Entity(teacher2);
-		Entity entityTeacher3 = new Entity(teacher3);
-		Entity entityStudent1 = new Entity(student1);
-		Entity entityStudent2 = new Entity(student2);
-		Entity entityStudent3 = new Entity(student3);
+		Entity entity =  EntityDAO.getInstance().selectEntityById(new Entity(Worker.class), 1);
+
 /*
 		Table.createTableFromEntity(entityTeacher1);
 
@@ -76,13 +66,9 @@ public class MainClass {
 		entityTeacher3.loadManyToMany(3, 2, 3);
 		entityStudent1.loadManyToMany(1, 2);
 		entityStudent3.loadManyToMany(3, 1, 3);*/
+	System.out.print("");
 
-		System.out.println(teacher1);
-		System.out.println(teacher2);
-		System.out.println(teacher3);
-		System.out.println(student1);
-		System.out.println(student2);
-		System.out.println(student3);
+
 	}
 
 	private static void createCustomScript() throws IllegalArgumentException, IllegalAccessException {
