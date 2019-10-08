@@ -7,19 +7,11 @@ import demo.MainClass;
 
 public class Transaction implements ITransaction {
 
-    private static Connection connection;
+    private Connection connection;
 
 
     @Override
-    public Connection openConnection() {
-        if (connection == null) {
-            try {
-                connection = MainClass.connection.getConnection();
-                disableAutoCommit();
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
+    public Connection getConnection() {
         return connection;
     }
 
@@ -74,5 +66,10 @@ public class Transaction implements ITransaction {
             e.printStackTrace();
         }
         return connection;
+    }
+
+    @Override
+    public void setConnection(Connection connection) {
+        this.connection = connection;
     }
 }

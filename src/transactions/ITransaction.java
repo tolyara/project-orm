@@ -4,12 +4,15 @@ import java.sql.Connection;
 
 public interface ITransaction {
 	
-    public Connection openConnection();
+    public Connection getConnection();
+
+    public Connection close();
+
+    public void setConnection(Connection connection);
 
     public void commit();
 
     public void rollback();
 
-    public Connection close();
 
 }
