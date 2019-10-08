@@ -17,12 +17,12 @@ public class DatabaseTypeManager {
             	databaseSettings.put("host", "postgres.host");
             	databaseSettings.put("database", "postgres.database");
                 break;                
-            case "mysql":
+            case "mysql": {
             	databaseSettings.put("driver", "mysql.driver"); 
             	databaseSettings.put("url", "mysql.url");
             	databaseSettings.put("username", "mysql.username");
             	databaseSettings.put("password", "mysql.password");
-                break;
+                break; }
             default:
                 throw new RuntimeException("Error! Unknown Database type");
         }

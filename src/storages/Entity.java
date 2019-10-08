@@ -3,7 +3,7 @@ package storages;
 import annotations.*;
 import connections.MyConnection;
 import sql.EntityDAO;
-import sql.QuerryBuilder;
+import sql.QueryBuilder;
 import sql.SQLBuilder;
 
 import java.lang.annotation.Annotation;
@@ -86,14 +86,7 @@ public class Entity {
 		Integer value = 0;
 		for (Field column : getEntityClass().getDeclaredFields()) {
 			if (column.isAnnotationPresent(PrimaryKey.class)) {
-				// final String COLUMN_NAME = column.getAnnotation(Column.class).fieldName();
-
-				// final String COLUMN_NAME = primaryKey();
-
 				try {
-
-					// if (COLUMN_NAME.toLowerCase().equals(primaryKey())) {
-					// try {
 					column.setAccessible(true);
 					value = ((Integer) column.get(getEntityObject()));
 				} catch (IllegalArgumentException | IllegalAccessException | SecurityException e) {
@@ -113,8 +106,6 @@ public class Entity {
 		for (Field parsedField : entityClass.getDeclaredFields()) {
 			if (parsedField.isAnnotationPresent(Column.class)) {
 				final String COLUMN_NAME = parsedField.getAnnotation(Column.class).fieldName();
-				// if (!COLUMN_NAME.toLowerCase().equals(primaryKey())) { /* skip field that is
-				// PK */
 				try {
 					parsedFields.append(COLUMN_NAME.toLowerCase() + ", ");
 				} catch (IllegalArgumentException e) {
@@ -137,12 +128,9 @@ public class Entity {
 		for (Field parsedField : entityClass.getDeclaredFields()) {
 			if (parsedField.isAnnotationPresent(Column.class)) {
 				final String COLUMN_NAME = parsedField.getAnnotation(Column.class).fieldName();
-				// if (!COLUMN_NAME.toLowerCase().equals(primaryKey())) { /* skip field that is
-				// PK */
 				try {
 					parsedField.setAccessible(true);
-					/* getting value that we need to push */
-					Object fieldValue = (Object) parsedField.get(entityObject);
+					Object fieldValue = (Object) parsedField.get(entityObject); /* getting value that we need to push */
 					preparedValues.append("'" + fieldValue + "'" + ", ");
 				} catch (IllegalArgumentException | IllegalAccessException | ClassCastException e) {
 					e.printStackTrace();
@@ -243,7 +231,7 @@ public class Entity {
 		return Model.class;
 	}
 
-	public QuerryBuilder column(String fieldName) {
+	public QueryBuilder column(String fieldName) {
 		String columnName = ""; 
 		for (Field parsedField : entityClass.getDeclaredFields()) {
 			if (parsedField.getName().equals(fieldName)) {
@@ -252,7 +240,7 @@ public class Entity {
 				
 			}
 		}
-		return new QuerryBuilder(columnName);
+		return new QueryBuilder(columnName);
 	}
 
 	private String getAnnotationAttrubite(Field parsedField) {

@@ -10,12 +10,14 @@ import java.util.List;
 
 import javax.sql.rowset.CachedRowSet;
 
+import com.mysql.cj.protocol.a.authentication.CachingSha2PasswordPlugin;
+
 import annotations.Column;
 import annotations.Model;
 import annotations.PrimaryKey;
 import connections.MyConnection;
 
-public class EntityDAO {
+public class EntityDAO implements AutoCloseable {
 
 	private static EntityDAO instance;
 	Connection connection;
@@ -69,7 +71,7 @@ public class EntityDAO {
 		}
 		return flag;
 	}
-	
+
 	public boolean deleteAllRecordsInTable(Entity entity) {
 
 		boolean flag = false;
@@ -94,6 +96,25 @@ public class EntityDAO {
 
 		try (final Statement statement = connection.createStatement();
 				final ResultSet resultSet = statement.executeQuery(QUERY_READ_FROM_TABLE)) {
+			while (resultSet.next()) {
+				Entity en = setFieldsValue(entity, resultSet, PK_NAME);
+				entities.add(en);
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return entities;
+	}
+
+	/*
+	 * Method works correct only if we request all columns in query
+	 */
+	// TODO make it for custom columns
+	public List<Entity> executeCustomRequest(String query, Entity entity) {
+		String PK_NAME = entity.primaryKey();
+		List<Entity> entities = new ArrayList<>();
+		try (final Statement statement = this.connection.createStatement();
+				final ResultSet resultSet = statement.executeQuery(query)) {
 			while (resultSet.next()) {
 				Entity en = setFieldsValue(entity, resultSet, PK_NAME);
 				entities.add(en);
@@ -169,4 +190,14 @@ public class EntityDAO {
 	public Connection getConnection() {
 		return connection;
 	}
+
+	@Override
+	public void close() throws Exception {
+		try {
+			connection.close();
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+	}
+
 }

@@ -6,10 +6,12 @@ import java.sql.*;
 import java.util.List;
 import java.util.Set;
 
+import javax.sql.rowset.CachedRowSet;
+
 import connections.MyConnection;
 import demo.models.*;
 import sql.EntityDAO;
-import sql.QuerryBuilder;
+import sql.QueryBuilder;
 import storages.Entity;
 import storages.Table;
 import transactions.Transaction;
@@ -83,9 +85,9 @@ public class MainClass {
 		System.out.println(student3);
 	}
 
-	private static void createCustomScript() {
+	private static void createCustomScript() throws IllegalArgumentException, IllegalAccessException {
 		
-		QuerryBuilder querryBuilder = new QuerryBuilder();
+		QueryBuilder querryBuilder = new QueryBuilder();
 		Entity entity = new Entity(Worker.class);
 		
 		final String QUERRY_2 = querryBuilder
@@ -93,12 +95,13 @@ public class MainClass {
 				.from(entity)
 				.where(entity.column("id").lessThan(4))
 				.orderBy(entity.column("id")).submit();
-		System.out.println(QUERRY_2);		
+		System.out.println("\n" + QUERRY_2 + "\n\n");		
 		
-		final String QUERRY_3 = querryBuilder.selectAll().from(entity).where(entity.column("salary").moreThan(100))
-				.and(entity.column("hasAddress").eq(false)).submit();				
+		final String QUERRY_3 = querryBuilder.selectAll()
+				.from(entity).where(entity.column("salary").moreThan(601))
+				.and(entity.column("hasAddress").eq(false)).submit();	
 		System.out.println(QUERRY_3);
-		
+		printReceivedObjects(EntityDAO.getInstance().executeCustomRequest(QUERRY_3, entity));		
 	}
 
 	private static void printReceivedObjects(List<Entity> entities)
