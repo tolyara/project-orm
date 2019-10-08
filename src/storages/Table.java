@@ -35,7 +35,7 @@ public class Table {
                     }
                 }
                 createManyToOneDependency(entity);
-                createManyToManyDependency(entity, statement);
+                createManyToManyDependency(entity);
 
                 flag = true;
 
@@ -137,32 +137,34 @@ public class Table {
         }
     }
 
-    private static void createManyToManyDependency(Entity firstEntity, Statement statement) {
-        List<Field> manyToManyFields = firstEntity.getManyToManyFields();
 
-        for (Field desiredField : manyToManyFields) {
-            try {
-                Entity secondEntity = getEntityFromFieldName(desiredField);
-                if (!isTableExist(secondEntity.tableName())) {
-                    createTableFromEntity(secondEntity);
+    private static void createManyToManyDependency(Entity parent) {
+        List<Field> manyToManyFields = parent.getManyToManyFields();
+        if (manyToManyFields.size() > 0) {
+            for (Field desiredField : manyToManyFields) {
+                Entity child = getEntityFromFieldWithCollection(desiredField);
+                if (!Table.isTableExist(child.tableName())) {
+                    Table.createTableFromEntity(child);
                 }
-                String helpTableName1 = firstEntity.tableName() + "_" + secondEntity.tableName();
-                String helpTableName2 = secondEntity.tableName() + "_" + firstEntity.tableName();
-                if (!isTableExist(helpTableName1) && !isTableExist(helpTableName2)) {
-                    String firstColumnName = firstEntity.tableName() + "_id";
-                    String secondColumnName = secondEntity.tableName() + "_id";
-                    String createTable = "CREATE TABLE " + helpTableName1 + "(" + firstColumnName + " INTEGER, " + secondColumnName + " INTEGER)";
-                    statement.executeUpdate(createTable);
-                    statement.executeUpdate(SQLBuilder.buildForeignKeyRequest(firstEntity, desiredField, helpTableName1));
-                    statement.executeUpdate(SQLBuilder.buildForeignKeyRequest(secondEntity, desiredField, helpTableName1));
+                String joinTableName = Table.getJoinTableName(parent, child);
+                if (!Table.isTableExist(joinTableName)) {
+                    executeManyToManyRequest(parent, child, desiredField, joinTableName);
                 }
-            } catch (SQLException e) {
-                e.printStackTrace();
             }
         }
     }
 
-    private static Entity getEntityFromFieldName(Field field) {
+    private static void executeManyToManyRequest(Entity parent, Entity child, Field field, String tableName) {
+        try (final Statement statement = new MyConnection(false).getConnection().createStatement()) {
+            statement.executeUpdate(SQLBuilder.buildJoinTableRequest(parent, child, tableName));
+            statement.executeUpdate(SQLBuilder.buildForeignKeyRequest(parent, field, tableName));
+            statement.executeUpdate(SQLBuilder.buildForeignKeyRequest(child, field, tableName));
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static Entity getEntityFromFieldWithCollection(Field field) {
         Class dependentClassName = null;
         try {
             String fullDesiredFieldName = field.getGenericType().toString();
@@ -184,6 +186,7 @@ public class Table {
         }
         return false;
     }
+
     public static String getJoinTableName (Entity parentEntity, Entity childEntity) {
         String joinTableName1 = parentEntity.tableName() + "_" + childEntity.tableName();
         String joinTableName2 = childEntity.tableName() + "_" + parentEntity.tableName();

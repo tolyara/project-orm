@@ -70,7 +70,6 @@ public class MainClass {
 
 
 /*
-		Table.createTableFromEntity(entityTeacher1);
 
 		Table.createRecordInTable(entityTeacher1);
 		Table.createRecordInTable(entityTeacher2);
@@ -78,7 +77,7 @@ public class MainClass {
 		Table.createRecordInTable(entityStudent1);
 		Table.createRecordInTable(entityStudent2);
 		Table.createRecordInTable(entityStudent3);
-
+*/
 
 /*
 		entityTeacher1.loadManyToMany(1, 1, 2);
@@ -95,26 +94,35 @@ public class MainClass {
 		System.out.println(student3);
 */
 
+//		createCustomScript();
+
+/*
 		Entity local = EntityDAO.getInstance().selectEntityById(new Entity(Teacher.class), 1);
 		System.out.println("");
+*/
+/*
+		Table.deleteEntityTable(Table.getJoinTableName(entityStudent1, 	entityStudent1));
+		Table.deleteEntityTable(entityStudent1.tableName());
+		Table.deleteEntityTable(entityTeacher1.tableName());
+*/
 
 	}
 
 	private static void createCustomScript() throws IllegalArgumentException, IllegalAccessException {
 		
 		QueryBuilder querryBuilder = new QueryBuilder();
-		Entity entity = new Entity(Worker.class);
-		
+		Entity entity = new Entity(Student.class);
+		/*
 		final String QUERRY_2 = querryBuilder
 				.select(entity.column("id"), (entity.column("salary").avg()))
 				.from(entity)
 				.where(entity.column("id").lessThan(4))
 				.orderBy(entity.column("id")).submit();
 		System.out.println("\n" + QUERRY_2 + "\n\n");		
-		
+		*/
 		final String QUERRY_3 = querryBuilder.selectAll()
-				.from(entity).where(entity.column("salary").moreThan(601))
-				.and(entity.column("hasAddress").eq(false)).submit();	
+				.from(entity).where(entity.column("averageMark").lessThan(4))
+				.and(entity.column("sex").eq(false)).submit();
 		System.out.println(QUERRY_3);
 		printReceivedObjects(EntityDAO.getInstance().executeCustomRequest(QUERRY_3, entity));		
 	}
@@ -122,10 +130,10 @@ public class MainClass {
 	private static void printReceivedObjects(List<Entity> entities)
 			throws IllegalArgumentException, IllegalAccessException {
 		for (Entity entity : entities) {
-			Worker worker = (Worker) entity.getEntityObject();
-			for (Field field : worker.getClass().getDeclaredFields()) {
+			Object entityObject = entity.getEntityObject();
+			for (Field field : entityObject.getClass().getDeclaredFields()) {
 				field.setAccessible(true);
-				System.out.printf("%14s", field.get(worker));
+				System.out.printf("%18s", field.get(entityObject));
 			}
 			System.out.println();
 		}

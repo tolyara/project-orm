@@ -20,6 +20,9 @@ public class Student {
     @Column(fieldName = "average_mark")
     private double averageMark;
 
+    @Column(fieldName = "sex")
+    private boolean sex;
+
     @ManyToOne(joinColumn = "teacher_id")
     private Teacher teacher;
 

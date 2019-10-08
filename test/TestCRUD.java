@@ -1,19 +1,15 @@
 package test;
 
-import static org.junit.Assert.*;
-
+import connections.MyConnection;
+import demo.models.ImmutableWorker;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-
-import connections.MyConnection;
-import demo.MainClass;
-import demo.models.ImmutableWorker;
-import demo.models.TestModel;
-import demo.models.Worker;
-import SQL.EntityDAO;
+import sql.EntityDAO;
 import storages.Entity;
 import storages.Table;
+
+import static org.junit.Assert.*;
 
 public class TestCRUD {
 	

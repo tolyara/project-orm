@@ -244,13 +244,14 @@ public class Entity {
     public Model getModelAnnotation() {
         return entityClass.getAnnotation(Model.class);
     }
+
+
 	public void loadManyToMany(int parentId, int... childIds) {
-		createManyToManyDependency();
 
 		List<Field> fields = this.getManyToManyFields();
 		for (Field field: fields){
 			try {
-				Entity child = getEntityFromFieldWithCollection(field);
+				Entity child = Table.getEntityFromFieldWithCollection(field);
 
 				field.setAccessible(true);
 				Collection<Object> childs = new HashSet<>();
@@ -270,43 +271,6 @@ public class Entity {
 		}
 	}
 
-	private void createManyToManyDependency() {
-		List<Field> manyToManyFields = this.getManyToManyFields();
-		if (manyToManyFields.size() > 0) {
-			for (Field desiredField : manyToManyFields) {
-				Entity child = this.getEntityFromFieldWithCollection(desiredField);
-				if (!Table.isTableExist(child.tableName())) {
-					Table.createTableFromEntity(child);
-				}
-				String joinTableName = Table.getJoinTableName(this, child);
-				if (!Table.isTableExist(joinTableName)) {
-					executeManyToManyRequest(this, child, desiredField, joinTableName);
-				}
-			}
-		}
-	}
-
-	private static void executeManyToManyRequest(Entity parent, Entity child, Field field, String tableName) {
-		try (final Statement statement = new MyConnection(false).getConnection().createStatement()) {
-			statement.executeUpdate(SQLBuilder.buildJoinTableRequest(parent, child, tableName));
-			statement.executeUpdate(SQLBuilder.buildForeignKeyRequest(parent, field, tableName));
-			statement.executeUpdate(SQLBuilder.buildForeignKeyRequest(child, field, tableName));
-		} catch (SQLException e) {
-			e.printStackTrace();
-		}
-	}
-
-	public Entity getEntityFromFieldWithCollection(Field field) {
-		Class dependentClassName = null;
-		try {
-			String fullDesiredFieldName = field.getGenericType().toString();
-			String genericClassNameFormList = fullDesiredFieldName.substring(fullDesiredFieldName.indexOf("<") + 1, fullDesiredFieldName.indexOf(">"));
-			dependentClassName = Class.forName(genericClassNameFormList);
-		} catch (ClassNotFoundException e) {
-			e.printStackTrace();
-		}
-		return new Entity(dependentClassName);
-	}
 
 
 
