@@ -108,6 +108,10 @@ public class MainClass {
 
 	}
 
+	private static void testFK(){
+
+	}
+
 	private static void createCustomScript() throws IllegalArgumentException, IllegalAccessException {
 		
 		QueryBuilder querryBuilder = new QueryBuilder();
@@ -141,9 +145,9 @@ public class MainClass {
 
 	private static void tryTransaction() throws Exception {
 		Transaction tx = new Transaction();
-		tx.openConnection();
+		tx.setConnection(connection.getConnection());
 		Table.createRecordInTable(new Entity(new Worker(12, "test1", false, 1200.5)));
-		connection.close();
+
 		EntityDAO.getInstance().updateRecordInTable(new Entity(new Worker(12, "test1", false, 1200.5)));
 		try {
 			tx.commit();
