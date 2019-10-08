@@ -96,7 +96,6 @@ public class Table {
         return objects;
     }
 
-    //todo refactor
     private static void createManyToOneDependency(Entity entity) {
         StringBuilder SQLRequest = new StringBuilder();
 
@@ -111,28 +110,20 @@ public class Table {
                     //alter parent table id column to child table
                     try (final PreparedStatement statement = getConnection().prepareStatement(SQLBuilder.alterIntFieldLine(entity.getModelAnnotation().tableName(), entityRequest.getModelAnnotation().tableName() + "_id"))) {
                         statement.executeUpdate();
-
                     } catch (SQLException e) {
                         e.printStackTrace();
                     }
                     //create fk from child to parent by id
-                    SQLRequest.append("ALTER TABLE ").append(entity.tableName()).append(" ADD CONSTRAINT ");
-                    SQLRequest.append("fk_").append(entity.tableName()).append("_").append(field.getName());
-                    SQLRequest.append(" FOREIGN KEY ");
-                    SQLRequest.append("(").append(field.getAnnotation(ManyToOne.class).joinColumn()).append(")");
-                    SQLRequest.append(" REFERENCES ").append(entityRequest.getModelAnnotation().tableName()).append(" ");
-                    SQLRequest.append("(").append(entityRequest.getModelAnnotation().primaryKey()).append(")");
-                    SQLRequest.append(" ON UPDATE ").append(field.getAnnotation(ManyToOne.class).onUpdate().toString()).append(" ");
-                    SQLRequest.append(" ON DELETE ").append(field.getAnnotation(ManyToOne.class).onDelete().toString()).append(" ");
+                    try (final PreparedStatement statement = getConnection().prepareStatement(SQLBuilder.buildFkForManyToOne(entity, entityRequest, field))) {
+                        statement.executeUpdate();
+
+                    } catch (SQLException e) {
+                        e.printStackTrace();
+                    }
                 } catch (ClassNotFoundException e) {
                     e.printStackTrace();
                 }
-                try (final PreparedStatement statement = getConnection().prepareStatement(SQLRequest.toString())) {
-                    statement.executeUpdate();
 
-                } catch (SQLException e) {
-                    e.printStackTrace();
-                }
             }
         }
     }

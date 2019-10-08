@@ -5,6 +5,7 @@ import java.lang.reflect.Field;
 import annotations.Column;
 import annotations.ForeignKey;
 import annotations.ManyToMany;
+import annotations.ManyToOne;
 import storages.DataTypes;
 import storages.Entity;
 import storages.Table;
@@ -101,6 +102,7 @@ public final class SQLBuilder {
             e.printStackTrace();
         }
 
+
         return SQLRequest.toString();
     }
 
@@ -141,5 +143,20 @@ public final class SQLBuilder {
             }
         }
         return valuesLine.toString().substring(0, valuesLine.length() - 2);
+    }
+
+    public static String buildFkForManyToOne(Entity entity, Entity entityRequest, Field field){
+
+        StringBuilder SQLRequest = new StringBuilder();
+        SQLRequest.append("ALTER TABLE ").append(entity.tableName()).append(" ADD CONSTRAINT ");
+        SQLRequest.append("fk_").append(entity.tableName()).append("_").append(field.getName());
+        SQLRequest.append(" FOREIGN KEY ");
+        SQLRequest.append("(").append(field.getAnnotation(ManyToOne.class).joinColumn()).append(")");
+        SQLRequest.append(" REFERENCES ").append(entityRequest.getModelAnnotation().tableName()).append(" ");
+        SQLRequest.append("(").append(entityRequest.getModelAnnotation().primaryKey()).append(")");
+        SQLRequest.append(" ON UPDATE ").append(field.getAnnotation(ManyToOne.class).onUpdate().toString()).append(" ");
+        SQLRequest.append(" ON DELETE ").append(field.getAnnotation(ManyToOne.class).onDelete().toString()).append(" ");
+
+        return SQLRequest.toString();
     }
 }

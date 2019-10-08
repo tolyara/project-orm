@@ -38,7 +38,7 @@ public class Entity {
                 e.printStackTrace();
             }
         } else {
-            // TODO exception
+            //todo exception
         }
     }
 
