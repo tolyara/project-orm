@@ -1,6 +1,9 @@
 package sql;
 
+import java.lang.reflect.Field;
+
 import annotations.Column;
+import annotations.ForeignKey;
 import annotations.ManyToMany;
 import storages.DataTypes;
 import storages.Entity;
@@ -66,6 +69,38 @@ public final class SQLBuilder {
         SQLRequest.append(" REFERENCES ").append(entity.tableName()).append(ID);
         SQLRequest.append(" ON UPDATE ").append(annotation.onUpdate().toString()).append(" ");
         SQLRequest.append(" ON DELETE ").append(annotation.onDelete().toString()).append(" ");
+        return SQLRequest.toString();
+    }
+
+    public static String alterIntFieldLine(String tableName, String idName)
+    {
+        return "ALTER TABLE " + tableName + " add " + idName + " INT;" ;
+    }
+
+    public static String buildCreateForeignKeyRequest(Entity entity, Field field) {
+        ForeignKey annotation = field.getAnnotation(ForeignKey.class);
+        StringBuilder SQLRequest = new StringBuilder();
+        try {
+            String name = "demo.models." + annotation.entity();            //todo fix this line
+            Entity entityRequest = new Entity(Class.forName(name));
+            String requestTableName = entityRequest.getModelAnnotation().tableName();
+
+            if (!Table.isTableExist(requestTableName)) {
+                Table.createTableFromEntity(entityRequest);
+            }
+
+            SQLRequest.append("ALTER TABLE ").append(entity.tableName()).append(" ADD CONSTRAINT ");
+            SQLRequest.append("fk_").append(entity.tableName()).append("_").append(field.getName());
+            SQLRequest.append(" FOREIGN KEY ");
+            SQLRequest.append("(").append(field.getAnnotation(Column.class).fieldName()).append(")");
+            SQLRequest.append(" REFERENCES ").append(requestTableName).append(" ");
+            SQLRequest.append("(").append(annotation.column()).append(")");
+            SQLRequest.append(" ON UPDATE ").append(annotation.onUpdate().toString()).append(" ");
+            SQLRequest.append(" ON DELETE ").append(annotation.onDelete().toString()).append(" ");
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        }
+
         return SQLRequest.toString();
     }
 

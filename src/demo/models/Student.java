@@ -1,9 +1,6 @@
 package demo.models;
 
-import annotations.Column;
-import annotations.ManyToMany;
-import annotations.Model;
-import annotations.PrimaryKey;
+import annotations.*;
 
 import java.util.Objects;
 import java.util.Set;
@@ -22,6 +19,9 @@ public class Student {
 
     @Column(fieldName = "average_mark")
     private double averageMark;
+
+    @ManyToOne(joinColumn = "teacher_id")
+    private Teacher teacher;
 
     @ManyToMany(table = "teacher")
     private Set<Teacher> teachers;

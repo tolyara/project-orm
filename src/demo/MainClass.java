@@ -65,7 +65,9 @@ public class MainClass {
 //		Table.deleteEntityTable(entityTeacher1.tableName());
 
 //		Table.createTableFromEntity(entityTeacher1);
-/*
+
+//		Entity entity =  EntityDAO.getInstance().selectEntityById(new Entity(Worker.class), 1);
+
 
 		Table.createRecordInTable(entityTeacher1);
 		Table.createRecordInTable(entityTeacher2);
@@ -74,7 +76,6 @@ public class MainClass {
 		Table.createRecordInTable(entityStudent2);
 		Table.createRecordInTable(entityStudent3);
 
-*/
 
 /*
 		entityTeacher1.loadManyToMany(1, 1, 2);
@@ -90,6 +91,10 @@ public class MainClass {
 		System.out.println(student2);
 		System.out.println(student3);
 */
+
+		Entity local = EntityDAO.getInstance().selectEntityById(new Entity(Teacher.class), 1);
+		System.out.println("");
+
 	}
 
 	private static void createCustomScript() throws IllegalArgumentException, IllegalAccessException {

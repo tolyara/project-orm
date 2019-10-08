@@ -1,9 +1,6 @@
 package demo.models;
 
-import annotations.Column;
-import annotations.ManyToMany;
-import annotations.Model;
-import annotations.PrimaryKey;
+import annotations.*;
 
 import java.util.Objects;
 import java.util.Set;
@@ -23,12 +20,15 @@ public class Teacher {
     @Column(fieldName = "sex")
     private boolean sex;
 
-    @ManyToMany(table = "student")
-    private Set<Student> students;
+   /* @ManyToMany(table = "student")
+    private Set<Student> students;*/
 
-    public Set<Student> getStudents() {
-        return students;
-    }
+//    public Set<Student> getStudents() {
+//        return students;
+//    }
+
+    @OneToMany(mappedBy = "teacher")
+    private Set<Student> students;
 
     public Teacher() {
     }
