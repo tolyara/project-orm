@@ -1,10 +1,8 @@
 package demo.models;
 
 import annotations.Column;
-import annotations.ForeignKey;
 import annotations.Model;
 import annotations.PrimaryKey;
-import storages.Actions;
 
 import java.util.Date;
 
@@ -27,8 +25,7 @@ public class TestModel {
 	private int age;
 
 	@Column(fieldName = "client_id")
-	@ForeignKey(entity = "Client", column = "id", onUpdate = Actions.CASCADE, onDelete = Actions.CASCADE)
-	private int clientId;
+    private int clientId;
 
 
 	public TestModel() {

@@ -1,24 +1,20 @@
 package demo;
 
-import SQL.EntityDAO;
-import SQL.QuerryBuilder;
-import connections.MyConnection;
-import demo.fk_models.Student;
-import demo.fk_models.Teacher;
-import demo.models.Client;
-import demo.models.TestModel;
-import demo.models.Worker;
-import storages.Entity;
-import storages.PGConnectionPool;
-import storages.Table;
-import transactions.Transaction;
 
 import java.lang.reflect.Field;
-import java.sql.Date;
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
+import java.sql.*;
 import java.util.List;
+import java.util.Set;
 
+import javax.sql.rowset.CachedRowSet;
+
+import connections.MyConnection;
+import demo.models.*;
+import sql.EntityDAO;
+import sql.QueryBuilder;
+import storages.Entity;
+import storages.Table;
+import transactions.Transaction;
 
 /**
  * Class demonstrates the job with project main entities
@@ -29,15 +25,14 @@ public class MainClass {
 	private static final String VERSION = "beta version";
 	public static final MyConnection connection = new MyConnection(false);
 
-	private static final Client CLIENT = new Client("Ivanov", "Ivan", "false");
+
+	private static final Client CLIENT = new Client("Ivanov", "Ivan", false);
 
 	public static void main(String[] args) throws Exception {
 
-		//fillTables();
-		printHeader();
-		doDemo();
-		closeResources();
-
+		 printHeader();
+		 doDemo();
+		 closeResources();
 
 	}
 
@@ -54,83 +49,45 @@ public class MainClass {
 
 	private static void doDemo() throws Exception {
 
-		// Table.createTableFromEntity(new Entity(Worker.class));
+		Entity entity =  EntityDAO.getInstance().selectEntityById(new Entity(Worker.class), 1);
 
-		try (final PreparedStatement statement = PGConnectionPool.getInstance().getConnection().prepareStatement("DROP TABLE student,teacher")) {
-			//statement.executeUpdate();
+/*
+		Table.createTableFromEntity(entityTeacher1);
 
-		} catch (SQLException e) {
-			e.printStackTrace();
-		}
-        Entity student = new Entity(Student.class);
-        Entity teacher = new Entity(Teacher.class);
-		student = EntityDAO.getInstance().selectEntityById(student, 1);
-        teacher = EntityDAO.getInstance().selectEntityById(teacher, 1);
+		Table.createRecordInTable(entityTeacher1);
+		Table.createRecordInTable(entityTeacher2);
+		Table.createRecordInTable(entityTeacher3);
+		Table.createRecordInTable(entityStudent1);
+		Table.createRecordInTable(entityStudent2);
+		Table.createRecordInTable(entityStudent3);*/
+/*
+		entityTeacher1.loadManyToMany(1, 1, 2);
+		entityTeacher2.loadManyToMany(2, 1, 2, 3);
+		entityTeacher3.loadManyToMany(3, 2, 3);
+		entityStudent1.loadManyToMany(1, 2);
+		entityStudent3.loadManyToMany(3, 1, 3);*/
+	System.out.print("");
 
-        Teacher t = (Teacher) teacher.getEntityObject();
-        Entity e = new Entity(t.getStudent(1));
-
-        //List<Entity> entities = EntityDAO.getInstance().readAllRecordsOrderedByPK(new Entity(Worker.class));
-		//entities.get(0).loadOneToOne();
-		//EntityDAO.getInstance().createRecordInTable(new Entity(new Worker("test", false, 1)));
-		//Entity entity = EntityDAO.getInstance().selectEntityById(new Entity(Worker.class), 3);
-		System.out.println("");
-		//printReceivedObjects(EntityDAO.getInstance().readAllRecordsOrderedByPK(new Entity(Worker.class)));
-//		 Table.createTableFromEntity(new Entity(Worker.class));
-		
-//		printReceivedObjects(EntityDAO.getInstance().readAllRecordsOrderedByPK((Worker.class)));
-
-
-		// Entity en = EntityDAO.getInstance().selectEntityById(new
-		// Entity(Worker.class), 40);
-		// System.out.println(en.getEntityObject());
-
-//		 Table.createRecordInTable(new Entity(new ImmutableWorker(12, "tes65", true, 600.5)));
-//		Table.createRecordInTable(new Entity(new Worker(12, "test9", false, 999, 9)));
-//		 Table.createTableFromEntity(new Entity(Client.class));
-		// Table.deleteEntityTable("worker");
-//		 EntityDAO.getInstance().updateRecordInTable(new Entity(new Worker(10, "super_test4",
-//		 false, 1000, 23)));
-//		 EntityDAO.getInstance().deleteRecordInTableByPK(new Entity(new Worker(10)));
-	}
-
-	private static void fillTables()
-	{
-		Client client;
-		Worker worker;
-
-		for(int i = 0; i < 20; i++){
-			TestModel testModel = new TestModel("field " + i, new Date(System.currentTimeMillis()));
-			EntityDAO.getInstance().createRecordInTable(new Entity(testModel));
-			client = new Client("surname " + i, "name" + i,"false", i);
-			EntityDAO.getInstance().createRecordInTable(new Entity(client));
-			worker = new Worker("surname " + i, false, 1);
-			EntityDAO.getInstance().createRecordInTable(new Entity(worker));
-		}
 
 	}
 
-
-
-	private static void createCustomScript() {
+	private static void createCustomScript() throws IllegalArgumentException, IllegalAccessException {
 		
-		QuerryBuilder querryBuilder = new QuerryBuilder();
+		QueryBuilder querryBuilder = new QueryBuilder();
 		Entity entity = new Entity(Worker.class);
 		
-		final String QUERRY_1 = querryBuilder.selectAll().from(entity).submit();
-		System.out.println(QUERRY_1);
-		
 		final String QUERRY_2 = querryBuilder
-				.select(entity.column("id"), (entity.column("surname").avg()))
+				.select(entity.column("id"), (entity.column("salary").avg()))
 				.from(entity)
-				.where(entity.column("hasAddress").lessThan(true))
+				.where(entity.column("id").lessThan(4))
 				.orderBy(entity.column("id")).submit();
-		System.out.println(QUERRY_2);		
+		System.out.println("\n" + QUERRY_2 + "\n\n");		
 		
-		final String QUERRY_3 = querryBuilder.selectAll().from(entity).where(entity.column("salary").moreThan(100))
-				.and(entity.column("hasAddress").eq(false)).submit();				
+		final String QUERRY_3 = querryBuilder.selectAll()
+				.from(entity).where(entity.column("salary").moreThan(601))
+				.and(entity.column("hasAddress").eq(false)).submit();	
 		System.out.println(QUERRY_3);
-		
+		printReceivedObjects(EntityDAO.getInstance().executeCustomRequest(QUERRY_3, entity));		
 	}
 
 	private static void printReceivedObjects(List<Entity> entities)
@@ -149,7 +106,7 @@ public class MainClass {
 		Transaction tx = new Transaction();
 		tx.openConnection();
 		Table.createRecordInTable(new Entity(new Worker(12, "test1", false, 1200.5)));
-		// myORM.close();
+		connection.close();
 		EntityDAO.getInstance().updateRecordInTable(new Entity(new Worker(12, "test1", false, 1200.5)));
 		try {
 			tx.commit();
@@ -158,5 +115,4 @@ public class MainClass {
 			e.printStackTrace();
 		}
 	}
-
 }

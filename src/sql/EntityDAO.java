@@ -1,4 +1,4 @@
-package SQL;
+package sql;
 
 import annotations.Column;
 import annotations.ManyToOne;
@@ -14,7 +14,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-public class EntityDAO {
+public class EntityDAO implements AutoCloseable {
 
     private static EntityDAO instance;
     Connection connection;
@@ -31,25 +31,7 @@ public class EntityDAO {
         return instance;
     }
 
-    //todo remove public static
-    private Entity setFieldsValue(Entity entity, ResultSet resultSet, String primaryKey) throws SQLException {
-        Entity localEntity = new Entity(entity.getEntityClass());
-        try {
-            for (Field parsedField : entity.getEntityClass().getDeclaredFields()) {
-                parsedField.setAccessible(true);
-                if (parsedField.isAnnotationPresent(PrimaryKey.class)) {
-                    parsedField.set(localEntity.getEntityObject(), resultSet.getInt(primaryKey));
-                } else if (parsedField.isAnnotationPresent(Column.class)) {
-                    final String COLUMN_NAME = parsedField.getAnnotation(Column.class).fieldName();
-                    parsedField.set(localEntity.getEntityObject(), resultSet.getObject(COLUMN_NAME));
-                }
-            }
-        } catch (IllegalArgumentException | IllegalAccessException e) {
-            e.printStackTrace();
 
-        }
-        return localEntity;
-    }
 
     public int createRecordInTable(Entity entity) {
         int addedRecordId = -1;
@@ -57,21 +39,22 @@ public class EntityDAO {
         final String QUERY_CREATE_ON_TABLE = "INSERT INTO " + TABLE_NAME + " (" + entity.getParsedFieldsLine() + ")"
                 + " VALUES (" + entity.getParsedValuesLine() + ");";
 
-        try (final PreparedStatement statement = connection.prepareStatement(QUERY_CREATE_ON_TABLE,
-                Statement.RETURN_GENERATED_KEYS)) {
-            statement.executeUpdate();
-            try (ResultSet generatedKeys = statement.getGeneratedKeys()) {
-                if (generatedKeys.next()) {
-                    addedRecordId = generatedKeys.getInt(1);
-                } else {
-                    throw new IllegalStateException("Could not return PK of added client!");
-                }
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return addedRecordId;
-    }
+		try (final PreparedStatement statement = connection.prepareStatement(QUERY_CREATE_ON_TABLE,
+				Statement.RETURN_GENERATED_KEYS)) {
+			statement.executeUpdate();
+			try (ResultSet generatedKeys = statement.getGeneratedKeys()) {
+				if (generatedKeys.next()) {
+
+					addedRecordId = generatedKeys.getInt(1);
+				} else {
+					throw new IllegalStateException("Could not return PK of added client!");
+				}
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return addedRecordId;
+	}
 
     public boolean deleteRecordInTableByPK(Entity entity) {
 
@@ -138,7 +121,7 @@ public class EntityDAO {
         try (final Statement statement = PGConnectionPool.getInstance().getConnection().createStatement();
              final ResultSet resultSet = statement.executeQuery("SELECT * FROM " + mappedEntity.getModelAnnotation().tableName() + " WHERE " + manyToOneField.getAnnotation(ManyToOne.class).joinColumn() + " = " + entity.getPrimaryKeyValue())) {
             while (resultSet.next()) {
-                localEntity = EntityDAO.getInstance().setFieldsValue(mappedEntity, resultSet, mappedEntity.getModelAnnotation().primaryKey());
+                localEntity = setFieldsValue(mappedEntity, resultSet, mappedEntity.getModelAnnotation().primaryKey());
                 entities.add(localEntity.getEntityObject());
             }
         }catch (SQLException e)
@@ -148,25 +131,62 @@ public class EntityDAO {
         return entities;
     }
 
-    public Entity selectEntityById(Entity entity, int id) {
+	/*
+	 * Method works correct only if we request all columns in query
+	 */
+	// TODO make it for custom columns
+	public List<Entity> executeCustomRequest(String query, Entity entity) {
+		String PK_NAME = entity.primaryKey();
+		List<Entity> entities = new ArrayList<>();
+		try (final Statement statement = this.connection.createStatement();
+				final ResultSet resultSet = statement.executeQuery(query)) {
+			while (resultSet.next()) {
+				Entity en = setFieldsValue(entity, resultSet, PK_NAME);
+				entities.add(en);
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return entities;
+	}
+
+	public Entity selectEntityById(Entity entity, int id) {
 
         final String TABLE_NAME = entity.tableName();
         String PK_NAME = entity.primaryKey();
         Entity localEntity = new Entity(entity);
 
-        String QUERY_SELECT_BY_ID = "SELECT * FROM " + TABLE_NAME + " WHERE " + PK_NAME + " = " + id;
-        try (final Statement statement = connection.createStatement();
-             final ResultSet resultSet = statement.executeQuery(QUERY_SELECT_BY_ID)) {
-
-            while (resultSet.next()) {
-                localEntity = setFieldsValue(entity, resultSet, PK_NAME);
+		String QUERY_SELECT_BY_ID = "SELECT * FROM " + TABLE_NAME + " WHERE " + PK_NAME + " = " + id;
+		try (final Statement statement = connection.createStatement();
+				final ResultSet resultSet = statement.executeQuery(QUERY_SELECT_BY_ID)) {
+			while (resultSet.next()) {
+				localEntity = setFieldsValue(entity, resultSet, PK_NAME);
                 localEntity.loadForeignKeys();
             }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return localEntity;
-    }
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return localEntity;
+	}
+
+	public Entity setFieldsValue(Entity entity, ResultSet resultSet, String primaryKey) throws SQLException {
+		Entity localEntity = new Entity(entity.getEntityClass());
+		try {
+			for (Field parsedField : entity.getEntityClass().getDeclaredFields()) {
+				parsedField.setAccessible(true);
+				if (parsedField.isAnnotationPresent(PrimaryKey.class)) {
+					parsedField.set(localEntity.getEntityObject(), resultSet.getInt(primaryKey));
+				} else if (parsedField.isAnnotationPresent(Column.class)) {
+					final String COLUMN_NAME = parsedField.getAnnotation(Column.class).fieldName();
+					parsedField.set(localEntity.getEntityObject(), resultSet.getObject(COLUMN_NAME));
+				}
+			}
+		} catch (IllegalArgumentException | IllegalAccessException e) {
+			e.printStackTrace();
+
+		}
+		return localEntity;
+	}
 
     @Deprecated
     private Object getNewInstance(Class<?> entityClass) {
@@ -193,7 +213,17 @@ public class EntityDAO {
 
     }
 
-    public Connection getConnection() {
-        return connection;
-    }
+	public Connection getConnection() {
+		return connection;
+	}
+
+	@Override
+	public void close() throws Exception {
+		try {
+			connection.close();
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+	}
+
 }

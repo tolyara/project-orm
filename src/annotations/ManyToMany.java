@@ -11,6 +11,8 @@ import java.lang.annotation.Target;
 @Retention(value = RetentionPolicy.RUNTIME)
 public @interface ManyToMany {
 
+    String table();
+
     Actions onUpdate() default Actions.NOACTION;
 
     Actions onDelete() default Actions.NOACTION;

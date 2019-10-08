@@ -1,21 +1,21 @@
 package storages;
 
 
-import SQL.EntityDAO;
-import SQL.QuerryBuilder;
 import annotations.*;
+import connections.MyConnection;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.ParameterizedType;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.sql.Statement;
+import java.util.*;
 
 
+import sql.EntityDAO;
+import sql.QueryBuilder;
+import sql.SQLBuilder;
 /*
  * Class for reflection methods
  */
@@ -107,27 +107,20 @@ public class Entity {
         return fieldsWithAnnotation;
     }
 
-    public Integer getPrimaryKeyValue() {
-        Integer value = 0;
-        for (Field column : getEntityClass().getDeclaredFields()) {
-            if (column.isAnnotationPresent(PrimaryKey.class)) {
-                // final String COLUMN_NAME = column.getAnnotation(Column.class).fieldName();
-
-                // final String COLUMN_NAME = primaryKey();
-
-                try {
-
-                    // if (COLUMN_NAME.toLowerCase().equals(primaryKey())) {
-                    // try {
-                    column.setAccessible(true);
-                    value = ((Integer) column.get(getEntityObject()));
-                } catch (IllegalArgumentException | IllegalAccessException | SecurityException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-        return value;
-    }
+	public Integer getPrimaryKeyValue() {
+		Integer value = 0;
+		for (Field column : getEntityClass().getDeclaredFields()) {
+			if (column.isAnnotationPresent(PrimaryKey.class)) {
+				try {
+					column.setAccessible(true);
+					value = ((Integer) column.get(getEntityObject()));
+				} catch (IllegalArgumentException | IllegalAccessException | SecurityException e) {
+					e.printStackTrace();
+				}
+			}
+		}
+		return value;
+	}
 
     /*
      * Return line with entity fields toLowerCase comma separated without PK
@@ -135,21 +128,19 @@ public class Entity {
     public String getParsedFieldsLine() {
         StringBuilder parsedFields = new StringBuilder();
 
-        for (Field parsedField : entityClass.getDeclaredFields()) {
-            if (parsedField.isAnnotationPresent(Column.class)) {
-                final String COLUMN_NAME = parsedField.getAnnotation(Column.class).fieldName();
-                // if (!COLUMN_NAME.toLowerCase().equals(primaryKey())) { /* skip field that is
-                // PK */
-                try {
-                    parsedFields.append(COLUMN_NAME.toLowerCase() + ", ");
-                } catch (IllegalArgumentException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-        return parsedFields.toString().trim().substring(0, parsedFields.toString().length() - 2); // return with delete
-        // last comma
-    }
+		for (Field parsedField : entityClass.getDeclaredFields()) {
+			if (parsedField.isAnnotationPresent(Column.class)) {
+				final String COLUMN_NAME = parsedField.getAnnotation(Column.class).fieldName();
+				try {
+					parsedFields.append(COLUMN_NAME.toLowerCase() + ", ");
+				} catch (IllegalArgumentException e) {
+					e.printStackTrace();
+				}
+			}
+		}
+		return parsedFields.toString().trim().substring(0, parsedFields.toString().length() - 2); // return with delete
+																									// last comma
+	}
 
     /*
      * Return line with entity values of fields toLowerCase comma separated without
@@ -159,21 +150,18 @@ public class Entity {
 
         StringBuilder preparedValues = new StringBuilder();
 
-        for (Field parsedField : entityClass.getDeclaredFields()) {
-            if (parsedField.isAnnotationPresent(Column.class)) {
-                final String COLUMN_NAME = parsedField.getAnnotation(Column.class).fieldName();
-                // if (!COLUMN_NAME.toLowerCase().equals(primaryKey())) { /* skip field that is
-                // PK */
-                try {
-                    parsedField.setAccessible(true);
-                    /* getting value that we need to push */
-                    Object fieldValue = (Object) parsedField.get(entityObject);
-                    preparedValues.append("'" + fieldValue + "'" + ", ");
-                } catch (IllegalArgumentException | IllegalAccessException | ClassCastException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
+		for (Field parsedField : entityClass.getDeclaredFields()) {
+			if (parsedField.isAnnotationPresent(Column.class)) {
+				final String COLUMN_NAME = parsedField.getAnnotation(Column.class).fieldName();
+				try {
+					parsedField.setAccessible(true);
+					Object fieldValue = (Object) parsedField.get(entityObject); /* getting value that we need to push */
+					preparedValues.append("'" + fieldValue + "'" + ", ");
+				} catch (IllegalArgumentException | IllegalAccessException | ClassCastException e) {
+					e.printStackTrace();
+				}
+			}
+		}
 
         return preparedValues.toString().trim().substring(0, preparedValues.toString().length() - 2); // return with
         // delete last
@@ -256,6 +244,71 @@ public class Entity {
     public Model getModelAnnotation() {
         return entityClass.getAnnotation(Model.class);
     }
+	public void loadManyToMany(int parentId, int... childIds) {
+		createManyToManyDependency();
+
+		List<Field> fields = this.getManyToManyFields();
+		for (Field field: fields){
+			try {
+				Entity child = getEntityFromFieldWithCollection(field);
+
+				field.setAccessible(true);
+				Collection<Object> childs = new HashSet<>();
+
+
+				try (final Statement statement = new MyConnection(false).getConnection().createStatement()) {
+					for (int childId : childIds) {
+						Entity entity = EntityDAO.getInstance().selectEntityById(child, childId);
+						childs.add(entity.getEntityObject());
+						statement.executeUpdate(SQLBuilder.buildCreateRecordInJoinTableRequest(this, child, parentId, childId));
+					}
+				}
+				field.set(getEntityObject(), childs);
+			} catch (SQLException | IllegalAccessException e) {
+				e.printStackTrace();
+			}
+		}
+	}
+
+	private void createManyToManyDependency() {
+		List<Field> manyToManyFields = this.getManyToManyFields();
+		if (manyToManyFields.size() > 0) {
+			for (Field desiredField : manyToManyFields) {
+				Entity child = this.getEntityFromFieldWithCollection(desiredField);
+				if (!Table.isTableExist(child.tableName())) {
+					Table.createTableFromEntity(child);
+				}
+				String joinTableName = Table.getJoinTableName(this, child);
+				if (!Table.isTableExist(joinTableName)) {
+					executeManyToManyRequest(this, child, desiredField, joinTableName);
+				}
+			}
+		}
+	}
+
+	private static void executeManyToManyRequest(Entity parent, Entity child, Field field, String tableName) {
+		try (final Statement statement = new MyConnection(false).getConnection().createStatement()) {
+			statement.executeUpdate(SQLBuilder.buildJoinTableRequest(parent, child, tableName));
+			statement.executeUpdate(SQLBuilder.buildForeignKeyRequest(parent, field, tableName));
+			statement.executeUpdate(SQLBuilder.buildForeignKeyRequest(child, field, tableName));
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+	}
+
+	public Entity getEntityFromFieldWithCollection(Field field) {
+		Class dependentClassName = null;
+		try {
+			String fullDesiredFieldName = field.getGenericType().toString();
+			String genericClassNameFormList = fullDesiredFieldName.substring(fullDesiredFieldName.indexOf("<") + 1, fullDesiredFieldName.indexOf(">"));
+			dependentClassName = Class.forName(genericClassNameFormList);
+		} catch (ClassNotFoundException e) {
+			e.printStackTrace();
+		}
+		return new Entity(dependentClassName);
+	}
+
+
 
     public Class getEntityClass() {
         return entityClass;
@@ -277,7 +330,7 @@ public class Entity {
         return Model.class;
     }
 
-    public QuerryBuilder column(String fieldName) {
+    public QueryBuilder column(String fieldName) {
         String columnName = "";
         for (Field parsedField : entityClass.getDeclaredFields()) {
             if (parsedField.getName().equals(fieldName)) {
@@ -286,7 +339,7 @@ public class Entity {
 
             }
         }
-        return new QuerryBuilder(columnName);
+        return new QueryBuilder(columnName);
     }
 
     private String getAnnotationAttribute(Field parsedField) {

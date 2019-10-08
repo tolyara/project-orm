@@ -1,14 +1,14 @@
 package test;
 
 import demo.models.Client;
+import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import storages.Entity;
+import storages.Table;
 
-import java.lang.reflect.Field;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 
 public class TestEntity {
@@ -21,31 +21,32 @@ public class TestEntity {
 
     @Test
     public void getFieldsNameShouldReturnCorrectList() {
-        List<String> correctList = Arrays.asList("surname", "name", "isgirl", "test_id");
+        List<String> correctList = Arrays.asList("surname", "name", "isgirl");
         Assert.assertEquals(correctList, client.getFieldsNames());
     }
 
     @Test
     public void getFieldTypesShouldReturnCorrectList() {
-        List<String> correctList = Arrays.asList("String", "String", "String", "int");
+        List<String> correctList = Arrays.asList("String", "String", "boolean");
         Assert.assertEquals(correctList, client.getFieldTypes());
     }
 
     @Test
-    public void getForeignKeyFieldsShouldReturnCorrectList() throws NoSuchFieldException {
-        List<Field> correctValue = Collections.singletonList(Client.class.getDeclaredField("testId"));
-        Assert.assertEquals(correctValue, client.getForeignKeyFields());
-    }
-
-    @Test
     public void getParsedFieldsLineShouldReturnCorrectLine() {
-        String correctLine = "surname, name, isgirl, testid";
+        String correctLine = "surname, name, isgirl";
         Assert.assertEquals(correctLine, client.getParsedFieldsLine());
     }
 
     @Test
     public void getParsedValuesLineShouldReturnCorrectLine() {
-        String correctLine = "surname, name, isgirl, testid";
+        String correctLine = "surname, name, isgirl";
         Assert.assertEquals(correctLine, client.getParsedFieldsLine());
+    }
+
+    @AfterClass
+    public static void dropTables() {
+        Table.deleteEntityTable("client_worker");
+        Table.deleteEntityTable("client");
+        Table.deleteEntityTable("worker");
     }
 }

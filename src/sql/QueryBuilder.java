@@ -1,8 +1,8 @@
-package SQL;
+package sql;
 
 import storages.Entity;
 
-public class QuerryBuilder {
+public class QueryBuilder {
 	
 	private StringBuilder querry;
 
@@ -19,11 +19,11 @@ public class QuerryBuilder {
 	private static final String AND = " AND ";
 	private static final String AVG = " AVG";
 	
-	public QuerryBuilder() {
+	public QueryBuilder() {
 		querry = new StringBuilder();
 	}
 	
-	public QuerryBuilder(String string) {
+	public QueryBuilder(String string) {
 		querry = new StringBuilder(string);
 	}
 
@@ -33,18 +33,18 @@ public class QuerryBuilder {
 		return resultQuerry;
 	}
 	
-	public QuerryBuilder selectAll() {
+	public QueryBuilder selectAll() {
 		querry.append(SELECT_ALL);
 		return this;
 	}
 	
-	public QuerryBuilder from(Entity entity) {
+	public QueryBuilder from(Entity entity) {
 		querry.append(FROM);
 		querry.append(entity.tableName());
 		return this;
 	}
 	
-	public QuerryBuilder where(String condition) {
+	public QueryBuilder where(String condition) {
 		querry.append(WHERE);
 		querry.append(condition);
 		return this;
@@ -68,19 +68,19 @@ public class QuerryBuilder {
 		return this.toString();
 	}
 	
-	public QuerryBuilder orderBy(QuerryBuilder column) {
+	public QueryBuilder orderBy(QueryBuilder column) {
 		querry.append(ORDER_BY);
 		querry.append(column.toString());
 		return this;
 	}
 	
-	public QuerryBuilder and(String condition) {
+	public QueryBuilder and(String condition) {
 		querry.append(AND);
 		querry.append(condition);
 		return this;
 	}
 	
-	public QuerryBuilder avg() {
+	public QueryBuilder avg() {
 		String column = this.toString();
 		querry = new StringBuilder();
 		querry.append(AVG);
@@ -93,10 +93,10 @@ public class QuerryBuilder {
 		return querry.toString();
 	}
 
-	public QuerryBuilder select(QuerryBuilder ... columns) {
+	public QueryBuilder select(QueryBuilder ... columns) {
 		querry.append(SELECT);
 		StringBuilder localBuilder = new StringBuilder();
-		for (QuerryBuilder column : columns) {
+		for (QueryBuilder column : columns) {
 			localBuilder.append(column.toString() + COMMA);
 		}
 		localBuilder = new StringBuilder(deleteLastComma(localBuilder.toString()));

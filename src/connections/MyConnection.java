@@ -42,7 +42,8 @@ public class MyConnection implements AutoCloseable {
 
 		}
 	}
-	
+
+	@Deprecated
 	private void setConnectionPool() {
 		try {
 			this.connection = PGConnectionPool.getInstance().getConnection();

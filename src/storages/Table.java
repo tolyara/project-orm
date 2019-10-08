@@ -1,14 +1,18 @@
 package storages;
 
 
-import annotations.ManyToOne;
-import SQL.EntityDAO;
-import SQL.SQLBuilder;
+
 
 import java.lang.reflect.Field;
+
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
+
+import annotations.ManyToOne;
+import connections.MyConnection;
+import sql.EntityDAO;
+import sql.SQLBuilder;
 
 /*
  * Class for working with DB tables
@@ -24,7 +28,7 @@ public class Table {
             flag = false;
         } else {
 
-            try (Statement statement = PGConnectionPool.getInstance().getConnection().createStatement()) {
+            try (Statement statement = new MyConnection(false).getConnection().createStatement()) {
                 statement.executeUpdate(SQLBuilder.buildCreateTableRequest(entity));
 
                 List<Field> foreignKeyFields = entity.getForeignKeyFields();
@@ -50,7 +54,7 @@ public class Table {
 
         try {
 
-            DatabaseMetaData metaData = getConnection().getMetaData();
+            DatabaseMetaData metaData = new MyConnection(false).getConnection().getMetaData();
             ResultSet resultSet = metaData.getTables(null, null, tableName, null);
 
             if (isResultContainsTableName(resultSet, tableName)) {
@@ -65,9 +69,11 @@ public class Table {
     /*
      * Method creates some record in table
      */
+
     public static int createRecordInTable(Entity entity) {
 
         return EntityDAO.getInstance().createRecordInTable(entity);
+
     }
 
 
@@ -150,8 +156,8 @@ public class Table {
                     String secondColumnName = secondEntity.tableName() + "_id";
                     String createTable = "CREATE TABLE " + helpTableName1 + "(" + firstColumnName + " INTEGER, " + secondColumnName + " INTEGER)";
                     statement.executeUpdate(createTable);
-                    statement.executeUpdate(SQLBuilder.buildCreateForeignKeyRequest(firstEntity, desiredField, helpTableName1));
-                    statement.executeUpdate(SQLBuilder.buildCreateForeignKeyRequest(secondEntity, desiredField, helpTableName1));
+                    statement.executeUpdate(SQLBuilder.buildForeignKeyRequest(firstEntity, desiredField, helpTableName1));
+                    statement.executeUpdate(SQLBuilder.buildForeignKeyRequest(secondEntity, desiredField, helpTableName1));
                 }
             } catch (SQLException e) {
                 e.printStackTrace();
@@ -181,6 +187,16 @@ public class Table {
         }
         return false;
     }
+    public static String getJoinTableName (Entity parentEntity, Entity childEntity) {
+        String joinTableName1 = parentEntity.tableName() + "_" + childEntity.tableName();
+        String joinTableName2 = childEntity.tableName() + "_" + parentEntity.tableName();
+        if (isTableExist(joinTableName1)) {
+            return joinTableName1;
+        } else if (isTableExist(joinTableName2)) {
+            return joinTableName2;
+        } else return joinTableName1;
+    }
+
 
     private static Connection getConnection() throws SQLException {
         return PGConnectionPool.getInstance().getConnection();

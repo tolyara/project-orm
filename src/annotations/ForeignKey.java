@@ -1,6 +1,5 @@
 package annotations;
 
-
 import storages.Actions;
 
 import java.lang.annotation.ElementType;
