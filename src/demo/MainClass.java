@@ -61,21 +61,27 @@ public class MainClass {
 		Entity entityStudent1 = new Entity(student1);
 		Entity entityStudent2 = new Entity(student2);
 		Entity entityStudent3 = new Entity(student3);
+
+//		Table.deleteEntityTable(entityTeacher1.tableName());
+
+//		Table.createTableFromEntity(entityTeacher1);
 /*
-		Table.createTableFromEntity(entityTeacher1);
 
 		Table.createRecordInTable(entityTeacher1);
 		Table.createRecordInTable(entityTeacher2);
 		Table.createRecordInTable(entityTeacher3);
 		Table.createRecordInTable(entityStudent1);
 		Table.createRecordInTable(entityStudent2);
-		Table.createRecordInTable(entityStudent3);*/
+		Table.createRecordInTable(entityStudent3);
+
+*/
+
 /*
 		entityTeacher1.loadManyToMany(1, 1, 2);
 		entityTeacher2.loadManyToMany(2, 1, 2, 3);
 		entityTeacher3.loadManyToMany(3, 2, 3);
 		entityStudent1.loadManyToMany(1, 2);
-		entityStudent3.loadManyToMany(3, 1, 3);*/
+		entityStudent3.loadManyToMany(3, 1, 3);
 
 		System.out.println(teacher1);
 		System.out.println(teacher2);
@@ -83,6 +89,7 @@ public class MainClass {
 		System.out.println(student1);
 		System.out.println(student2);
 		System.out.println(student3);
+*/
 	}
 
 	private static void createCustomScript() throws IllegalArgumentException, IllegalAccessException {
