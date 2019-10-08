@@ -69,6 +69,9 @@ public class MainClass {
 //		Entity entity =  EntityDAO.getInstance().selectEntityById(new Entity(Worker.class), 1);
 
 
+/*
+		Table.createTableFromEntity(entityTeacher1);
+
 		Table.createRecordInTable(entityTeacher1);
 		Table.createRecordInTable(entityTeacher2);
 		Table.createRecordInTable(entityTeacher3);
